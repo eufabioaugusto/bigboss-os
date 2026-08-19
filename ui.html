@@ -1805,77 +1805,116 @@
       </div>
     </section>
 
-    <section id="view-configuracoes" class="layout-grid hidden">
-      <div class="card">
-        <div class="card-header" style="display:flex;justify-content:space-between;align-items:flex-start;padding:20px 24px;border-bottom:1px solid var(--border);">
+    <section id="view-configuracoes" class="layout-grid hidden" style="grid-template-columns: 1fr; gap: 24px; max-width: 1000px; margin: 0 auto; padding: 20px 0;">
+      
+      <!-- Bloco 1: Perfil da Empresa -->
+      <div class="card" style="box-shadow: var(--shadow-100); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: var(--surface);">
+        <div class="card-header" style="background: var(--surface); padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
           <div>
-            <div class="card-title">Configurações da operação</div>
-            <div class="card-subtitle">A empresa preenche só o necessário. Volume e regras ficam com a plataforma.</div>
+            <div class="card-title" style="font-size: 15px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; margin: 0;">
+              <i data-lucide="building" style="width: 18px; height: 18px; color: var(--primary);"></i> Perfil da Empresa
+            </div>
+            <div class="card-subtitle" style="font-size: 12.5px; color: var(--subtle); margin-top: 2px;">Informações do seu negócio usadas para contextualizar e gerar as abordagens da IA.</div>
           </div>
-          <div style="display:flex;align-items:center;gap:10px;">
+          <div style="display:flex;align-items:center;gap:12px;">
             <span id="settings-saved" class="pill pill-green hidden">Salvo</span>
-            <button class="btn btn-primary" onclick="saveSettings()"><i data-lucide="save" style="width:14px;height:14px;margin-right:6px;"></i>Salvar Configurações</button>
+            <button class="btn btn-primary" onclick="saveSettings()"><i data-lucide="save" style="width: 14px; height: 14px; margin-right: 6px;"></i>Salvar Tudo</button>
           </div>
         </div>
-        <div class="card-body" style="padding:22px 24px;">
-          <div class="section-grid">
-            <div class="field-wrap"><label class="label">Nome da empresa</label><input id="co-name" class="input"></div>
-            <div class="field-wrap"><label class="label">Nome completo</label><input id="co-full-name" class="input"></div>
-            <div class="field-wrap"><label class="label">Responsável</label><input id="co-contact" class="input"></div>
-            <div class="field-wrap"><label class="label">Tagline</label><input id="co-tagline" class="input"></div>
-            <div class="field-wrap"><label class="label">Email comercial</label><input id="co-email" type="email" class="input"></div>
-            <div class="field-wrap"><label class="label">Telefone</label><input id="co-phone" class="input"></div>
-            <div class="field-wrap" style="grid-column:1/-1;"><label class="label">Website</label><input id="co-website" class="input"></div>
-            <div class="field-wrap" style="grid-column:1/-1;"><label class="label">Descrição / oferta</label><textarea id="co-description" class="textarea"></textarea></div>
-            <div class="field-wrap" style="grid-column:1/-1;"><label class="label">Tom de voz / regras de copy</label><textarea id="co-voice" class="textarea"></textarea></div>
+        <div class="card-body" style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+            <div class="field-wrap"><label class="label">Nome da empresa</label><input id="co-name" class="input" placeholder="Ex: BigBoss"></div>
+            <div class="field-wrap"><label class="label">Nome completo / Razão Social</label><input id="co-full-name" class="input" placeholder="Ex: BigBoss Ltda"></div>
           </div>
-          <div class="divider"></div>
-          <div class="section-grid">
-            <div class="field-wrap"><label class="label">Nome do remetente</label><input id="sender-name" class="input"></div>
-            <div class="field-wrap"><label class="label">Email de resposta</label><input id="sender-reply-email" type="email" class="input"></div>
-            <div class="field-wrap" style="grid-column:1/-1;">
-              <label class="label">Provedor de Envio</label>
-              <select id="sender-provider" class="select" onchange="toggleSmtpSettingsDisplay()">
-                <option value="platform_managed">Gerenciado pela plataforma (Resend)</option>
-                <option value="smtp">SMTP Próprio (UltraWeb ou outro)</option>
-              </select>
-            </div>
-            
-            <div id="resend-settings-group" class="field-wrap" style="grid-column:1/-1;">
-              <label class="label">Chave de API do Resend</label>
-              <input id="sender-resend-key" type="password" class="input" placeholder="re_...">
-            </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+            <div class="field-wrap"><label class="label">Responsável</label><input id="co-contact" class="input" placeholder="Ex: Fabio Augusto"></div>
+            <div class="field-wrap"><label class="label">Tagline (Slogan curto)</label><input id="co-tagline" class="input" placeholder="Ex: Tecnologia de Ponta & Escala Comercial"></div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+            <div class="field-wrap"><label class="label">E-mail comercial</label><input id="co-email" type="email" class="input" placeholder="contato@empresa.com"></div>
+            <div class="field-wrap"><label class="label">Telefone de contato</label><input id="co-phone" class="input" placeholder="(11) 99999-9999"></div>
+          </div>
+          <div class="field-wrap"><label class="label">Website da empresa</label><input id="co-website" class="input" placeholder="https://seusite.com.br"></div>
+          <div class="field-wrap"><label class="label">Descrição da empresa / O que você vende (oferta)</label><textarea id="co-description" class="textarea" rows="3" placeholder="Ex: Soluções digitais completas para captação de clientes B2B..."></textarea></div>
+          <div class="field-wrap"><label class="label">Regras de copy / Tom de voz para a IA</label><textarea id="co-voice" class="textarea" rows="3" placeholder="Ex: Fale de empresário para empresário, evite termos técnicos, ofereça um diagnóstico grátis..."></textarea></div>
+        </div>
+      </div>
 
-            <div id="smtp-settings-group" style="grid-column:1/-1; display:none; flex-direction:column; gap:12px; background:var(--gray-200); border:1px solid var(--border); padding:16px; border-radius:10px;">
-              <h4 style="margin:0; font-size:12px; font-weight:700; color:var(--text); text-transform:uppercase; letter-spacing:0.04em;">Configurações do Servidor SMTP</h4>
-              <div style="display:grid; grid-template-columns:2fr 1fr; gap:10px;">
-                <div class="field-wrap">
-                  <label class="label">Servidor SMTP</label>
-                  <input id="sender-smtp-host" class="input" placeholder="mail.ultraweb.com.br">
-                </div>
-                <div class="field-wrap">
-                  <label class="label">Porta SMTP</label>
-                  <input id="sender-smtp-port" type="number" class="input" placeholder="465">
-                </div>
+      <!-- Bloco 2: Configurações de Envio -->
+      <div class="card" style="box-shadow: var(--shadow-100); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: var(--surface);">
+        <div class="card-header" style="background: var(--surface); padding: 20px 24px; border-bottom: 1px solid var(--border);">
+          <div class="card-title" style="font-size: 15px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; margin: 0;">
+            <i data-lucide="mail" style="width: 18px; height: 18px; color: var(--primary);"></i> Provedor de Envio de E-mail
+          </div>
+          <div class="card-subtitle" style="font-size: 12.5px; color: var(--subtle); margin-top: 2px;">Como as suas abordagens serão disparadas aos prospects.</div>
+        </div>
+        <div class="card-body" style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+            <div class="field-wrap"><label class="label">Nome do remetente (Ex: Fabio)</label><input id="sender-name" class="input" placeholder="Ex: Fabio"></div>
+            <div class="field-wrap"><label class="label">E-mail de resposta (Reply-To)</label><input id="sender-reply-email" type="email" class="input" placeholder="contato@dominio.com"></div>
+          </div>
+          
+          <div class="field-wrap">
+            <label class="label">Provedor de Envio</label>
+            <select id="sender-provider" class="select" onchange="toggleSmtpSettingsDisplay()">
+              <option value="platform_managed">Gerenciado pela plataforma (Resend)</option>
+              <option value="smtp">SMTP Próprio</option>
+            </select>
+          </div>
+          
+          <div id="resend-settings-group" class="field-wrap">
+            <label class="label">Chave de API do Resend</label>
+            <input id="sender-resend-key" type="password" class="input" placeholder="re_...">
+          </div>
+
+          <div id="smtp-settings-group" style="display:none; flex-direction:column; gap:16px; background:var(--gray-50); border:1px solid var(--border); padding:20px; border-radius:10px;">
+            <h4 style="margin:0 0 4px 0; font-size:12.5px; font-weight:700; color:var(--text); text-transform:uppercase; letter-spacing:0.04em;">Configurações do Servidor SMTP</h4>
+            <div style="display:grid; grid-template-columns:3fr 1fr; gap:16px;">
+              <div class="field-wrap">
+                <label class="label">Servidor SMTP</label>
+                <input id="sender-smtp-host" class="input" placeholder="smtp.dominio.com">
               </div>
               <div class="field-wrap">
+                <label class="label">Porta SMTP</label>
+                <input id="sender-smtp-port" type="number" class="input" placeholder="465">
+              </div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+              <div class="field-wrap">
                 <label class="label">Usuário SMTP (E-mail de Envio)</label>
-                <input id="sender-email" type="email" class="input" placeholder="seu-email@ultraweb.com.br">
+                <input id="sender-email" type="email" class="input" placeholder="seu-email@dominio.com">
               </div>
               <div class="field-wrap">
                 <label class="label">Senha SMTP / Senha de App</label>
-                <input id="sender-smtp-pass" type="password" class="input" placeholder="sua senha">
+                <input id="sender-smtp-pass" type="password" class="input" placeholder="Sua senha SMTP">
               </div>
             </div>
           </div>
-          <div class="divider"></div>
-          <div class="section-grid">
-            <div style="grid-column:1/-1;"><h3 style="margin:0 0 6px;font-size:16px;font-weight:600;">Monitoramento de Respostas (IMAP)</h3></div>
-            <div class="field-wrap"><label class="label">Habilitar leitura de respostas</label><select id="imap-enabled" class="select"><option value="false">Não</option><option value="true">Sim</option></select></div>
-            <div class="field-wrap"><label class="label">Servidor IMAP</label><input id="imap-host" class="input" placeholder="imap.gmail.com"></div>
+        </div>
+      </div>
+
+      <!-- Bloco 3: Leitura de Respostas (IMAP) -->
+      <div class="card" style="box-shadow: var(--shadow-100); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: var(--surface);">
+        <div class="card-header" style="background: var(--surface); padding: 20px 24px; border-bottom: 1px solid var(--border);">
+          <div class="card-title" style="font-size: 15px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; margin: 0;">
+            <i data-lucide="inbox" style="width: 18px; height: 18px; color: var(--primary);"></i> Monitoramento de Respostas (IMAP)
+          </div>
+          <div class="card-subtitle" style="font-size: 12.5px; color: var(--subtle); margin-top: 2px;">Para monitorar respostas diretamente na Caixa de Entrada.</div>
+        </div>
+        <div class="card-body" style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+          <div class="field-wrap">
+            <label class="label">Habilitar leitura de respostas</label>
+            <select id="imap-enabled" class="select"><option value="false">Não</option><option value="true">Sim</option></select>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px;">
+            <div class="field-wrap"><label class="label">Servidor IMAP</label><input id="imap-host" class="input" placeholder="imap.dominio.com"></div>
             <div class="field-wrap"><label class="label">Porta IMAP</label><input id="imap-port" type="number" class="input" placeholder="993"></div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
             <div class="field-wrap"><label class="label">Usuário IMAP</label><input id="imap-user" class="input" placeholder="seu-email@dominio.com"></div>
-            <div class="field-wrap" style="grid-column:1/-1;"><label class="label">Senha IMAP / Senha de App</label><input id="imap-pass" type="password" class="input" placeholder="sua senha ou app password"></div>
+            <div class="field-wrap"><label class="label">Senha IMAP / Senha de App</label><input id="imap-pass" type="password" class="input" placeholder="Sua senha IMAP"></div>
           </div>
         </div>
       </div>
@@ -1917,8 +1956,8 @@
                   <span style="width:1px;height:16px;background:var(--border);margin:0 4px;"></span>
                   <button type="button" class="btn-tool" onclick="toggleSigHtmlMode()" id="btn-sig-raw-mode" title="Alternar Código HTML" style="font-size:11px;font-family:monospace;">&lt;/&gt;</button>
                 </div>
-                <button type="button" class="btn btn-secondary" style="height:32px;padding:0 12px;font-size:12px;" onclick="loadUltraWebSigPreset()">
-                  <i data-lucide="sparkles" style="width:12px;height:12px;margin-right:4px;"></i>Modelo UltraWeb
+                <button type="button" class="btn btn-secondary" style="height:32px;padding:0 12px;font-size:12px;" onclick="loadDefaultSigPreset()">
+                  <i data-lucide="sparkles" style="width:12px;height:12px;margin-right:4px;"></i>Gerar Assinatura Padrão
                 </button>
               </div>
 
@@ -2610,11 +2649,22 @@ function crmStatusMeta(status){const map={new:{label:'Novo',cls:'pill-blue'},rea
 function sourceLabel(source){return ({google:'Google',instagram:'Instagram',tiktok:'TikTok',tiktok_shop:'TikTok Shop'}[source]||'Google');}
 function nextActionMeta(action){const map={send_email:{label:'Enviar email',cls:'pill-green'},send_instagram_dm:{label:'Copiar DM',cls:'pill-blue'},call_or_whatsapp:{label:'Contato manual',cls:'pill-yellow'},followup:{label:'Follow-up',cls:'pill-yellow'},find_contact:{label:'Buscar contato',cls:'pill-yellow'},blocked:{label:'Bloqueado',cls:'pill-yellow'}};return map[action]||{label:'Revisar',cls:'pill-yellow'};}
 let isSigRawMode = false;
-const DEFAULT_ULTRAWEB_SIG = `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; color: #334155; line-height: 1.5;">
-  <p style="margin: 0 0 4px 0; font-weight: 700; color: #0f172a; font-size: 15px;">Fabio da Ultraweb</p>
-  <p style="margin: 0 0 8px 0; color: #64748b; font-size: 13px;">Estratégia & Crescimento Digital · <a href="https://ultraweb.com.br" target="_blank" style="color: #2563eb; text-decoration: none; font-weight: 500;">ultraweb.com.br</a></p>
-  <p style="margin: 0; color: #64748b; font-size: 12.5px;">📞 WhatsApp: <a href="https://wa.me/5511948129812" target="_blank" style="color: #16a34a; text-decoration: none; font-weight: 500;">(11) 94812-9812</a> · ✉️ <a href="mailto:fabio@ultraweb.com.br" style="color: #64748b; text-decoration: none;">fabio@ultraweb.com.br</a></p>
+
+function buildDynamicSignature(c) {
+  const name = c.contact_name || 'Seu Nome';
+  const coName = c.name || 'Sua Empresa';
+  const tagline = c.tagline || 'Estratégia & Crescimento';
+  const website = c.website || '';
+  const webClean = website.replace(/^https?:\/\/(www\.)?/, '');
+  const email = c.email || '';
+  const phone = c.phone || '';
+  
+  return `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; color: #334155; line-height: 1.5;">
+  <p style="margin: 0 0 4px 0; font-weight: 700; color: #0f172a; font-size: 15px;">${escapeHtml(name)}</p>
+  <p style="margin: 0 0 8px 0; color: #64748b; font-size: 13px;">${escapeHtml(tagline)} · ${website ? `<a href="${escapeHtml(website)}" target="_blank" style="color: #2563eb; text-decoration: none; font-weight: 500;">${escapeHtml(webClean)}</a>` : escapeHtml(coName)}</p>
+  <p style="margin: 0; color: #64748b; font-size: 12.5px;">${phone ? `📞 WhatsApp: <a href="https://wa.me/${phone.replace(/\D/g,'')}" target="_blank" style="color: #16a34a; text-decoration: none; font-weight: 500;">${escapeHtml(phone)}</a> · ` : ''}${email ? `✉️ <a href="mailto:${escapeHtml(email)}" style="color: #64748b; text-decoration: none;">${escapeHtml(email)}</a>` : ''}</p>
 </div>`;
+}
 
 function getSignatureHtml(){
   if(isSigRawMode){
@@ -2624,7 +2674,7 @@ function getSignatureHtml(){
 }
 
 function setSignatureHtml(htmlContent){
-  const clean = htmlContent || DEFAULT_ULTRAWEB_SIG;
+  const clean = htmlContent || buildDynamicSignature(appSettings.company || {});
   const visual = document.getElementById('sig-visual-editor');
   const raw = document.getElementById('sig-raw-textarea');
   const preview = document.getElementById('sig-live-preview');
@@ -2656,10 +2706,11 @@ function formatSigDoc(cmd, val=null){
 }
 
 function promptSigLink(){
-  const url = prompt('Digite a URL do link (ex: https://ultraweb.com.br ou https://wa.me/5511...):', 'https://');
+  const url = prompt('Digite a URL do link (ex: https://seusite.com.br ou https://wa.me/5511...):', 'https://');
   if(url) formatSigDoc('createLink', url);
 }
 
+// Inserir Imagem / Logo
 function promptSigImage(){
   const url = prompt('Digite a URL da imagem/logotipo:', 'https://');
   if(url) formatSigDoc('insertImage', url);
@@ -2684,9 +2735,11 @@ function toggleSigHtmlMode(){
   }
 }
 
-function loadUltraWebSigPreset(){
-  setSignatureHtml(DEFAULT_ULTRAWEB_SIG);
-  showToast({title:'Modelo UltraWeb carregado',message:'Você pode personalizar nome, links e contatos.',tone:'success'});
+function loadDefaultSigPreset(){
+  const c = appSettings.company || {};
+  const sigHtml = buildDynamicSignature(c);
+  setSignatureHtml(sigHtml);
+  showToast({title:'Assinatura gerada',message:'Modelo padrão gerado com base no perfil da sua empresa.',tone:'success'});
 }
 
 function updateSidebarSummary(){
@@ -2744,7 +2797,7 @@ function applySettingsForm(data){
   
   if(document.getElementById('sig-enabled')){
     document.getElementById('sig-enabled').value = sig.is_enabled !== false ? 'true' : 'false';
-    setSignatureHtml(sig.html || DEFAULT_ULTRAWEB_SIG);
+    setSignatureHtml(sig.html || buildDynamicSignature(c));
   }
   
   updateSidebarSummary();

@@ -52,8 +52,13 @@ def get_daily_whatsapp_queue() -> List[Dict[str, Any]]:
         segmento = c.get("segmento") or "Geral"
         cidade = c.get("cidade") or ""
 
+        company = get_company()
+        sender_name = company.get("contact_name") or "Fabio"
+        sender_first_name = sender_name.strip().split(" ")[0]
+        company_display = company.get("name") or "BigBoss OS"
+
         script = (
-            f"Olá! Aqui é o Fabio, da UltraWeb. Enviei um e-mail hoje para a {company_name} "
+            f"Olá! Aqui é o {sender_first_name}, da {company_display}. Enviei um e-mail hoje para a {company_name} "
             f"com uma análise rápida de 2 min sobre a presença digital e oportunidades no Google. "
             f"Conseguiu dar uma olhada por lá?"
         )

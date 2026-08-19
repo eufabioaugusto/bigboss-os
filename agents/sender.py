@@ -145,7 +145,25 @@ def _format_email_html_and_text(lead: dict, config: dict, safe_to: Optional[str]
     # 1. Plain text version
     full_text = body_text
     if sig_html:
-        full_text = f"{full_text}\n\n---\nFabio da Ultraweb\nEstratégia & Crescimento Digital · ultraweb.com.br\nWhatsApp: (11) 94812-9812 · fabio@ultraweb.com.br"
+        co = config.get("company", {})
+        contact_name = co.get("contact_name") or "Operador"
+        co_name = co.get("name") or "BigBoss OS"
+        co_web = co.get("website") or ""
+        co_phone = co.get("phone") or ""
+        co_email = co.get("email") or ""
+        
+        parts = [contact_name]
+        if co_name:
+            parts.append(co_name)
+        if co_web:
+            parts.append(co_web)
+        if co_phone:
+            parts.append(f"WhatsApp: {co_phone}")
+        if co_email:
+            parts.append(co_email)
+            
+        plain_sig = "\n".join(parts)
+        full_text = f"{full_text}\n\n---\n{plain_sig}"
     if safe_to:
         full_text = f"{full_text}\n\n---\n🛡️ [Modo de Teste Seguro Ativo]\nDestinatário original do lead: {lead.get('email')}\nEmpresa: {lead.get('nome_empresa')}"
 
@@ -258,14 +276,16 @@ def _send_via_resend(lead: dict, config: dict) -> dict:
 
 def _send_via_smtp(lead: dict, config: dict) -> dict:
     sender_cfg = _sender_cfg(config)
-    smtp_host = sender_cfg.get("smtp_host") or os.environ.get("SMTP_HOST") or "mail.ultraweb.com.br"
+    co = config.get("company", {})
+    
+    smtp_host = sender_cfg.get("smtp_host") or os.environ.get("SMTP_HOST") or "smtp.domain.com"
     smtp_port = int(sender_cfg.get("smtp_port") or os.environ.get("SMTP_PORT") or 465)
-    smtp_user = sender_cfg.get("email") or sender_cfg.get("smtp_user") or os.environ.get("SMTP_USER") or "send@ultraweb.com.br"
+    smtp_user = sender_cfg.get("email") or sender_cfg.get("smtp_user") or os.environ.get("SMTP_USER") or "user@domain.com"
     smtp_password = _resolve_smtp_password(config) or os.environ.get("SMTP_APP_PASSWORD") or os.environ.get("IMAP_PASSWORD") or ""
 
-    from_name = sender_cfg.get("name") or "Fabio da Ultraweb"
-    from_email = sender_cfg.get("from_email") or sender_cfg.get("email") or "fabio@ultraweb.com.br"
-    reply_to = sender_cfg.get("reply_to_email") or "fabio@ultraweb.com.br"
+    from_name = sender_cfg.get("name") or co.get("contact_name") or "Operador"
+    from_email = sender_cfg.get("from_email") or sender_cfg.get("email") or co.get("email") or "info@domain.com"
+    reply_to = sender_cfg.get("reply_to_email") or co.get("email") or "info@domain.com"
 
     safe_to = _safe_test_email()
     target_email = safe_to if safe_to else lead["email"]
