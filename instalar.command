@@ -102,11 +102,11 @@ for i in {1..30}; do
     echo ""
     echo "========================================"
     echo "  Instalação concluída!"
-    echo ""
-    echo "  Use o BigBoss OS.app para abrir."
+    echo "  Abrindo o BigBoss OS..."
     echo "========================================"
     echo ""
-    read -p "Pressione Enter para fechar..."
+    sleep 1.5
+    open "$DIR/BigBoss OS.app" 2>/dev/null || open "http://localhost:7860"
     exit 0
   fi
   echo -n "."
