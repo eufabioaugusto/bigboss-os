@@ -120,3 +120,21 @@ templates:
       Na UltraWeb (Google & Meta Partner com 15 anos de mercado), desenhamos uma esteira de captação sob medida para colocar contatos qualificados no seu comercial diariamente.
 
       Preparamos uma projeção simples de investimento e retorno para o seu nicho. Faria sentido eu te apresentar esses números em 5 minutos?
+
+  promocao_ecommerce_50:
+    id: promocao_ecommerce_50
+    label: "Campanha: E-commerce Promocional R$ 1.500"
+    description: "Abordagem com oferta de e-commerce limitado a 50 vagas, de R$ 3.500 por R$ 1.500"
+    assunto: "{empresa} — oportunidade de automatizar vendas (Campanha E-commerce)"
+    corpo: |
+      Olá, time da {empresa}!
+
+      Estava analisando a presença digital de vocês no segmento de {segmento} e notamos que vocês têm produtos excelentes, mas ainda realizam a venda e o atendimento de forma 100% manual (enviando fotos por WhatsApp ou Direct).
+
+      O gargalo desse modelo é que vocês perdem vendas toda vez que o cliente demora a ser atendido ou tenta comprar fora do horário comercial.
+
+      Para ajudar lojistas a automatizarem esse processo, abrimos este mês a nossa Campanha de Expansão Digital: estamos selecionando apenas 50 negócios para implantar uma plataforma de e-commerce completa (com carrinho de compras, cálculo de frete automático e pagamentos no pix/cartão).
+
+      O valor padrão dessa implantação é de R$ 3.500, mas para os 50 selecionados nesta campanha, a taxa de configuração fica em parcela única de R$ 1.500 (a plataforma roda sozinha depois).
+
+      Faz sentido eu te enviar o checklist de tudo o que está incluso nessa entrega rápida?
