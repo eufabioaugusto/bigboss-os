@@ -2612,6 +2612,7 @@ function startTasksPolling(){
 function stopTasksPolling(){if(!tasksPollingTimer)return;clearInterval(tasksPollingTimer);tasksPollingTimer=null;}
 function showView(name){
   currentView=name;
+  window.location.hash = name;
   document.body.classList.toggle('is-central',name==='central');
   Object.keys(pageMeta).forEach(v=>{
     const view=document.getElementById(`view-${v}`);
@@ -5161,7 +5162,10 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // ── Init ──
-bindTagInput();resetTaskForm();loadSettings();loadTemplates();loadTasks();updateCentralRoutineHint();showView('central');initIcons();initOnboarding();checkServerState();
+bindTagInput();resetTaskForm();loadSettings();loadTemplates();loadTasks();updateCentralRoutineHint();
+const initialView = window.location.hash ? window.location.hash.substring(1) : 'central';
+showView(pageMeta[initialView] ? initialView : 'central');
+initIcons();initOnboarding();checkServerState();
 </script>
 </body>
 </html>
