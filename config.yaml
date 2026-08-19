@@ -1,0 +1,42 @@
+# Configuração do Motor de Prospecção
+sender:
+  provider: "platform_managed"
+  name: "Fabio da Ultraweb"
+  email: "fabio@ultraweb.com.br"
+  reply_to_email: "fabio@ultraweb.com.br"
+  reply_to_name: "Fabio da Ultraweb"
+  platform_from_email: "fabio@ultraweb.com.br"
+  platform_from_name: "Fabio da Ultraweb"
+  resend_api_key: ""
+  smtp_host: "mail.ultraweb.com.br"
+  smtp_port: 465
+  app_password: ""
+
+limits:
+  max_leads_per_run: 20
+  max_emails_per_day: 50
+  delay_between_sends_seconds: 30   # evita spam trigger
+
+mode: "manual"  # manual | assisted | auto
+# manual:    mostra cada email, pede aprovação
+# assisted:  mostra resumo do lote, pede aprovação única
+# auto:      envia sem confirmação (usar com cautela)
+
+search:
+  results_per_query: 10
+
+scoring:
+  min_score_to_send: 5   # 0-10, leads abaixo disso ficam em hold
+
+ai:
+  # motor: Claude Code CLI (OAuth via claude.ai — sem API key necessária)
+  # instale: npm install -g @anthropic-ai/claude-code
+  # autentique: claude   (apenas uma vez, no terminal)
+
+imap:
+  enabled: false
+  host: "imap.gmail.com"
+  port: 993
+  username: ""
+  password: ""
+

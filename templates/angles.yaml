@@ -1,0 +1,50 @@
+# Ângulos de abordagem por diagnóstico detectado
+# O sistema escolhe o ângulo com base nos sinais identificados no lead
+
+angles:
+  sem_site:
+    label: "Ausência de presença digital"
+    trigger_signals: ["sem site", "no website", "site inexistente"]
+    hook: "Encontrei {empresa} mas não consegui acessar nenhum site — e isso pode estar custando clientes todos os dias."
+    focus: "mostrar o custo invisível de não existir online"
+
+  site_fraco:
+    label: "Site existente mas sem conversão"
+    trigger_signals: ["site desatualizado", "sem https", "layout antigo", "sem cta"]
+    hook: "{empresa} tem site, mas ele provavelmente está afastando clientes em vez de atrair."
+    focus: "diagnóstico do site como barreira de vendas"
+
+  instagram_parado:
+    label: "Perfil social inativo"
+    trigger_signals: ["instagram sem posts", "último post há meses", "poucos seguidores"]
+    hook: "Vi o Instagram de {empresa} — o perfil existe, mas está trabalhando contra vocês."
+    focus: "oportunidade de reativação e posicionamento"
+
+  identidade_fraca:
+    label: "Identidade visual inconsistente"
+    trigger_signals: ["logos variados", "sem padrão visual", "comunicação inconsistente"]
+    hook: "A impressão que {empresa} passa hoje pode estar desvalorizando o que vocês entregam."
+    focus: "como autoridade visual gera confiança e preço"
+
+  comunicacao_generica:
+    label: "Mensagem sem diferenciação"
+    trigger_signals: ["mensagem genérica", "igual à concorrência", "sem proposta clara"]
+    hook: "Analisei a comunicação de {empresa} e percebi que está difícil saber por que escolher vocês."
+    focus: "posicionamento e diferenciação de mercado"
+
+  sem_funil:
+    label: "Sem estrutura de captação"
+    trigger_signals: ["sem lead magnet", "sem email list", "sem captura de contato"]
+    hook: "{empresa} atrai atenção mas provavelmente perde a maioria dos interessados sem capturar nada."
+    focus: "previsibilidade comercial via estrutura de funil"
+
+  baixa_autoridade:
+    label: "Baixa autoridade digital percebida"
+    trigger_signals: ["sem avaliações", "sem depoimentos", "sem cases"]
+    hook: "Clientes buscam {segmento} no Google — mas não encontram motivos para confiar em {empresa}."
+    focus: "construção de prova social e autoridade"
+
+  default:
+    label: "Oportunidade geral de marketing"
+    hook: "Analisei a presença digital de {empresa} e identifiquei oportunidades concretas que poderíamos explorar juntos."
+    focus: "abordagem consultiva genérica como fallback"

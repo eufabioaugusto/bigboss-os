@@ -1,0 +1,51 @@
+#!/bin/bash
+DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
+mkdir -p "$DIR/data"
+
+VENV_PYTHON="$DIR/.venv/bin/python"
+PLIST="$HOME/Library/LaunchAgents/com.bigbossos.server.plist"
+LOG="$DIR/data/app-debug.log"
+
+echo "=== $(date) ===" >> "$LOG"
+echo "DIR=$DIR" >> "$LOG"
+
+# Remove quarantine (necessário após download)
+xattr -dr com.apple.quarantine "$DIR" 2>/dev/null || true
+
+# ── Verifica se foi instalado ─────────────────────────────────────────────────
+if [ ! -f "$VENV_PYTHON" ]; then
+  osascript -e 'display alert "BigBoss OS" message "Execute o arquivo Install.command antes de abrir o app." as warning buttons {"OK"} default button "OK"'
+  echo "ERRO: venv não encontrado" >> "$LOG"
+  open "$DIR"
+  exit 1
+fi
+
+# ── Garante servidor rodando via LaunchAgent ──────────────────────────────────
+if [ -f "$PLIST" ]; then
+  launchctl load "$PLIST" 2>/dev/null || true
+fi
+
+# Aguarda servidor (até 30s)
+echo "Aguardando servidor..." >> "$LOG"
+for i in $(seq 1 60); do
+  /usr/bin/curl -sf http://localhost:7860 > /dev/null 2>&1 && break
+  sleep 0.5
+done
+
+if ! /usr/bin/curl -sf http://localhost:7860 > /dev/null 2>&1; then
+  # Servidor não respondeu — tenta iniciar direto
+  echo "Servidor não respondeu, iniciando direto..." >> "$LOG"
+  nohup "$VENV_PYTHON" "$DIR/server.py" > "$DIR/data/server.log" 2>&1 &
+  sleep 4
+fi
+
+# ── Abre o app ────────────────────────────────────────────────────────────────
+echo "Abrindo launcher..." >> "$LOG"
+"$VENV_PYTHON" "$DIR/launcher.py" >> "$LOG" 2>&1
+
+# Se chegou aqui, launcher saiu com erro
+STATUS=$?
+if [ $STATUS -ne 0 ]; then
+  MSG=$(tail -5 "$LOG" | tr '\n' ' ')
+  osascript -e "display alert \"BigBoss OS — Erro\" message \"$MSG\" as warning buttons {\"OK\"} default button \"OK\""
+fi

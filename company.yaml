@@ -1,0 +1,42 @@
+name: "UltraWeb"
+full_name: "UltraWeb Agência Digital & Estratégia de Crescimento"
+website: "https://ultraweb.com.br"
+email: "fabio@ultraweb.com.br"
+phone: "(11) 94812-9812"
+contact_name: "Fabio da Ultraweb"
+tagline: "Vamos tornar seu negócio inigualável"
+
+# Contexto para a IA gerar abordagens precisas por segmento
+description: |
+  Agência de marketing e crescimento digital completa (360°).
+  15 anos de mercado, Google Partner, Meta Partner, Shopify Expert.
+  Mais de 2.800 projetos entregues e mais de R$17M em vendas geradas.
+  
+  Serviços principais da agência:
+  - Gestão de Tráfego Pago (Google Ads, Meta Ads, TikTok Ads) e Geração de Leads
+  - Criação de Sites, Lojas Virtuais (E-commerce), Landing Pages e Páginas de Venda de Alta Conversão
+  - Gestão de Social Media, Posicionamento de Marca e Produção de Conteúdo
+  - Edição de Vídeo profissional (Reels, TikToks, Shorts, Criativos de Anúncios e VSLs)
+  - Estratégia para Experts e Infoprodutos (Lançamentos, Perpétuo, Funis de Vendas)
+  - Estruturação de Marketing para Atacado, Varejo Físico e Empresas B2B sem equipe interna
+
+# Ordem de prioridade de clientes ideais (ICPs):
+target_segments_priority:
+  - "1. Lojas de varejo físico (sem e-commerce, sem social media ativa, sem tráfego, sem gestão digital)"
+  - "2. Lojas de atacado e distribuidoras B2B (sem equipe de marketing interna ou com vendas estagnadas)"
+  - "3. Clínicas de Estética, Harmonização e Dermatologia (que precisam de equipe de marketing e captação de pacientes)"
+  - "4. Clínicas Odontológicas e Consultórios (implantes, próteses, alinhadores, estética dental)"
+  - "5. Clínicas Médicas e Saúde Integrada em Geral"
+  - "6. Escritórios de Arquitetura, Design de Interiores, Advocacia e Contabilidade"
+  - "7. Experts Digitais, Mentores e Criadores em fase inicial (precisando de página, infoproduto, VSL e estratégia)"
+  - "8. Negócios e Criadores precisando de Edição de Vídeo profissional e criativos para anúncios"
+  - "9. Qualquer negócio local ou regional que precise de mais clientes através de Tráfego Pago e Presença Digital"
+
+# Tom de voz dos emails — guia para a IA
+voice_rules: |
+  - Assinatura oficial: Fabio da Ultraweb (fabio@ultraweb.com.br)
+  - Tom direto, comercial, focado em gargalos reais e oportunidades práticas de faturamento
+  - Fale de empresário para empresário, sem 'marketês' complicado ou jargões vazios
+  - Oferta 'Cavalo de Tróia' / Diagnóstico: ofereça sempre uma análise prática de 2 minutos ou diagnóstico sem compromisso
+  - CTA simples e sem pressão: 'Faz sentido eu te mandar esse raio-x por aqui?' ou 'Podemos bater um papo rápido de 10 min essa semana?'
+  - Corpo enxuto (máximo 120 a 140 palavras), formatado com clareza e quebras de linha leves

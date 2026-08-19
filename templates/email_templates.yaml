@@ -1,0 +1,122 @@
+# Templates de Abordagem "Cavalo de Tróia" da UltraWeb (Diagnósticos de Alto Valor / Baixo Atrito)
+# Variáveis disponíveis: {empresa}, {segmento}, {cidade}, {sinal_principal}, {angulo_label}, {contact_name}, {agency_email}
+
+templates:
+
+  varejo_sem_ecommerce:
+    id: varejo_sem_ecommerce
+    label: "Cavalo de Tróia: Varejo Físico & Expansão Digital"
+    description: "Para lojas de varejo físico com pouca presença digital, sem e-commerce ou sem tráfego pago"
+    assunto: "{empresa} em {cidade} — oportunidade nas vendas digitais que notamos"
+    corpo: |
+      Olá, time da {empresa}!
+
+      Estava pesquisando por lojas de {segmento} em {cidade} e encontrei o trabalho de vocês. Notamos que vocês têm produtos excelentes e uma loja física consolidada, mas ainda há uma grande oportunidade inexplorada para vender também pelo digital e atrair clientes da cidade todos os dias pelo celular.
+
+      Como somos especialistas em marketing para varejo e e-commerce (Google/Meta Partner), preparamos um raio-x rápido de 2 minutos mostrando como estruturar um canal digital de vendas e captação para a {empresa}.
+
+      Faz sentido eu te enviar essa análise por aqui? Sem compromisso nenhum.
+
+  atacado_marketing_b2b:
+    id: atacado_marketing_b2b
+    label: "Cavalo de Tróia: Atacado & Captação de Revendedores B2B"
+    description: "Para fábricas, confecções, distribuidoras e atacadistas sem departamento de marketing estruturado"
+    assunto: "{empresa} — captação de novos revendedores e lojistas B2B"
+    corpo: |
+      Olá, diretoria da {empresa}!
+
+      Estava analisando empresas de atacado e distribuição de {segmento} e dei uma olhada na presença online de vocês.
+
+      Muitos atacadistas hoje dependem exclusivamente de representantes ou indicação, perdendo dezenas de novos lojistas e revendedores que buscam fornecedores todos os dias no Google e no Instagram.
+
+      Identificamos 2 estratégias digitais simples que aplicamos para empresas B2B gerarem pedidos de atacado recorrentes direto pelo WhatsApp.
+
+      Posso te mandar um resumo objetivo de 3 pontos para vocês avaliarem?
+
+  posicionamento_local:
+    id: posicionamento_local
+    label: "Cavalo de Tróia: Top 3 no Google & Captação Local (Clínicas & Serviços)"
+    description: "Para clínicas médicas, de estética, odontologia e negócios locais"
+    assunto: "{empresa} no Google em {cidade} — oportunidade que notamos"
+    corpo: |
+      Olá, equipe da {empresa}!
+
+      Estava pesquisando por {segmento} em {cidade} e encontrei o perfil de vocês. Notamos que vocês têm um trabalho muito bem avaliado, mas estão perdendo posições valiosas nas buscas locais do Google para concorrentes da região.
+
+      Identificamos 2 ajustes simples de tags e posicionamento local que podem colocar a {empresa} no Top 3 de buscas da cidade, aumentando os agendamentos diretos no WhatsApp.
+
+      Preparei um checklist objetivo com o passo a passo. Posso te enviar por aqui?
+
+  diagnostico_conversao:
+    id: diagnostico_conversao
+    label: "Cavalo de Tróia: Diagnóstico de Conversão & Perda de Leads (Escritórios & Serviços)"
+    description: "Para escritórios de arquitetura, advocacia, contabilidade e serviços profissionais"
+    assunto: "{empresa} — análise rápida de 2 min sobre a estrutura digital de vocês"
+    corpo: |
+      Olá, equipe da {empresa}!
+
+      Estava analisando a presença digital de algumas empresas do segmento de {segmento} em {cidade} e dei uma olhada na estrutura de vocês.
+
+      Identificamos 2 pontos específicos no fluxo de atração e conversão que provavelmente estão fazendo vocês perderem clientes qualificados todos os meses — especialmente no acesso via celular.
+
+      Preparamos um resumo rápido de 3 pontos com o que pode ser ajustado para reter esses contatos e gerar mais consultas/orçamentos.
+
+      Faz sentido eu te enviar o link desse diagnóstico por aqui? Sem compromisso.
+
+  experts_infoprodutos:
+    id: experts_infoprodutos
+    label: "Cavalo de Tróia: Experts, Mentores & Infoprodutos"
+    description: "Para infoprodutores, mentores e criadores de conteúdo em fase inicial ou escala"
+    assunto: "{empresa} — estrutura de conversão da sua página e funil de vendas"
+    corpo: |
+      Olá! Acompanho o seu trabalho no nicho de {segmento} e vejo um potencial enorme na autoridade do seu conteúdo.
+
+      Dando uma olhada na sua estrutura digital, notei 2 pontos específicos na experiência da página de vendas / captura que costumam aumentar a conversão de novos alunos e mentorados quando ajustados.
+
+      Como cuidamos de toda a parte estratégica de páginas, VSLs, funis e tráfego na UltraWeb, gravei um breakdown rápido mostrando o que você pode aplicar de imediato.
+
+      Posso te mandar o vídeo por aqui para você dar uma olhada?
+
+  video_criativos_ads:
+    id: video_criativos_ads
+    label: "Cavalo de Tróia: Edição de Vídeo & Criativos de Alta Performance"
+    description: "Para negócios e criadores que precisam de edição de Reels, TikToks e anúncios de alta retenção"
+    assunto: "{empresa} — formato de criativos e retenção de vídeo nos seus anúncios"
+    corpo: |
+      Olá, time da {empresa}!
+
+      Estava assistindo aos conteúdos e criativos da {empresa} no {segmento} e notei um ótimo posicionamento, mas com espaço claro para dobrar a taxa de retenção dos primeiros 3 segundos de vídeo (gancho) e o clique final.
+
+      Nossa equipe na UltraWeb é especializada em edição dinâmica para Reels/TikTok e criativos para anúncios que reduzem o custo por lead.
+
+      Montei um comparativo visual rápido de 2 minutos mostrando como transformar seus vídeos em máquinas de conversão. 
+
+      Faz sentido eu te enviar essa prévia por aqui?
+
+  ecommerce_cro:
+    id: ecommerce_cro
+    label: "Cavalo de Tróia: E-commerce & Checkout Mobile"
+    description: "Para e-commerces e lojas virtuais com gargalos de checkout e campanhas"
+    assunto: "{empresa} — detalhe na experiência de compra mobile da loja"
+    corpo: |
+      Olá, time da {empresa}!
+
+      Nossa equipe estava navegando pela loja de vocês e identificou 2 pequenos pontos de atrito no carregamento da página de produto e checkout no celular que costumam reduzir em 20% a 30% a conversão de novos compradores.
+
+      Como somos especialistas em e-commerce e tráfego pago (Shopify / Meta / Google Partner), gravamos uma análise rápida de 2 minutos mostrando o que corrigir para aproveitar melhor as visitas que vocês já recebem.
+
+      Faz sentido eu te mandar o vídeo por aqui?
+
+  trafego_aquisicao_clientes:
+    id: trafego_aquisicao_clientes
+    label: "Cavalo de Tróia: Gestão de Tráfego Pago & Captação Contínua"
+    description: "Para qualquer empresa que precise de mais clientes todo mês via Google e Meta Ads"
+    assunto: "{empresa} — como colocar um fluxo previsível de novos clientes no seu WhatsApp"
+    corpo: |
+      Olá, time da {empresa}!
+
+      Estava analisando o mercado de {segmento} em {cidade} e notei que a {empresa} tem uma excelente entrega, mas ainda pode explorar muito mais o volume de clientes que buscam seu serviço todos os dias no Google e no Instagram.
+
+      Na UltraWeb (Google & Meta Partner com 15 anos de mercado), desenhamos uma esteira de captação sob medida para colocar contatos qualificados no seu comercial diariamente.
+
+      Preparamos uma projeção simples de investimento e retorno para o seu nicho. Faria sentido eu te apresentar esses números em 5 minutos?

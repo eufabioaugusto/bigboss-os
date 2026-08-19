@@ -1,0 +1,12 @@
+[17:33:29] === open_auth chamado ===
+[17:33:29] APP_HOME=/Users/fabio/AGENTES/email-prospection/.app-home
+[17:33:29] PATH=/usr/bin:/bin:/usr/sbin:/sbin
+[17:33:29] claude encontrado: /usr/local/bin/claude
+[17:33:29] node path: /Users/fabio/.nvm/versions/node/v24.13.1/bin
+[17:33:29] Iniciando PTY com claude=/usr/local/bin/claude
+[17:33:29] Processo claude PID=48859
+[17:33:30] PTY output: '\n*█████▓▓░\r\r\n*███▓░░░\r\r\n░░░░░░███▓░\r\r\n░░░░░░░░░░░░░███▓░\r\r\n░░░░░░░░░░░░░░░░░░░*██▓░░▓\r\r\n░▓▓███▓▓░\r\r\n *░░░░\r\r\n ░░░░░░░░\r\r\n ░░░░░░░░░░░░░░░░\r\r\n █████████*\r\r\n██▄█████▄██*\r\r\n █████████*\r\r\n…………………████……………'
+[17:33:30] PTY output: '░░░░░*██▓░░▓\r\r\n░▓▓███▓▓░\r\r\n *░░░░\r\r\n ░░░░░░░░\r\r\n ░░░░░░░░░░░░░░░░\r\r\n █████████*\r\r\n██▄█████▄██*\r\r\n █████████*\r\r\n…………………████………………………………………………………………………………………………………………\r\r\n\r\r\n\x1b[?2026l\x1b[?2004h\x1b[?1004h\x1b[?25l'
+[17:33:37] 8s sem URL. Saída atual: 'og("Hello, \x1b[48;5;72mClaude\x1b[48;5;65m!");                                            \x1b[39m\x1b[49m\r\r\n\x1b[38;5;246m 3\x1b[1C\x1b[38;5;231m }\x1b[39m\r\r\n\x1b[2m\x1b[38;5;239m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌\x1b[39m\x1b[22m\r\r\n\x1b[38;5;246m Syntax\x1b[1Chighlighting\x1b[1Cavailable\x1b[1Conly\x1b[1Cin\x1b[1Cnative\x1b[1Cbuild\x1b[39m\r\r\n\x1b[?2026l'
+[17:33:37] Abrindo Terminal como fallback
+[17:33:37] _run encerrado. poll=None url_opened=False

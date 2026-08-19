@@ -1,0 +1,10 @@
+services:
+  app:
+    build: .
+    ports:
+      - "7860:7860"
+    volumes:
+      - ./data:/app/data
+      - ./.env:/app/.env:ro
+      - ${HOME}/.claude:/root/.claude:ro
+    restart: unless-stopped

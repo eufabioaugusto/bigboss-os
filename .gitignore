@@ -1,0 +1,10 @@
+.venv/
+.app-home/
+data/
+*.pyc
+__pycache__/
+*.db
+*.db-journal
+.env
+*.yaml.fabio-backup
+scratch/
