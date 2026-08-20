@@ -163,6 +163,26 @@ Personalize o email com 1 detalhe específico. Retorne JSON com assunto e corpo.
 
 def generate_emails_for_leads(leads: list, config: dict, templates_dir: str, progress_cb=None) -> list:
     company = load_company()
+    campaign_id = config.get("campaign_id")
+    if campaign_id:
+        import crm
+        try:
+            with crm.get_conn() as conn:
+                row = conn.execute("SELECT * FROM campaigns WHERE id = ?", (campaign_id,)).fetchone()
+                if row:
+                    camp = dict(row)
+                    company["name"] = camp.get("product_name") or company.get("name")
+                    desc = camp.get("product_description") or company.get("description", "")
+                    if camp.get("price_promo"):
+                        desc += f" [CAMPANHA ATIVA: Oferecendo {camp.get('product_name')} promocional por R$ {camp.get('price_promo')} (preço original R$ {camp.get('price_original') or ''})."
+                        if camp.get("scarcity_limit"):
+                            desc += f" Vagas limitadas a apenas {camp.get('scarcity_limit')} projetos.]"
+                    company["description"] = desc
+                    if camp.get("tone_of_voice"):
+                        company["voice_rules"] = camp.get("tone_of_voice")
+        except Exception as e:
+            if progress_cb:
+                progress_cb(f"Aviso: Erro ao carregar contexto de campanha {campaign_id}: {e}")
     
     spec_template_id = config.get("template_id")
     spec_template = None

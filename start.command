@@ -2,7 +2,7 @@
 cd "$(dirname "$0")"
 
 echo "========================================"
-echo "  🚀 BigBoss OS — UltraWeb Engine"
+echo "  🚀 BigBoss OS"
 echo "========================================"
 echo ""
 

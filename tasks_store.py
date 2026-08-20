@@ -156,6 +156,8 @@ def init_db():
             conn.execute("ALTER TABLE scheduled_tasks ADD COLUMN start_date TEXT")
         if "end_date" not in existing_columns:
             conn.execute("ALTER TABLE scheduled_tasks ADD COLUMN end_date TEXT")
+        if "campaign_id" not in existing_columns:
+            conn.execute("ALTER TABLE scheduled_tasks ADD COLUMN campaign_id TEXT")
 
 
 def _row_to_task(row) -> dict:
@@ -206,6 +208,7 @@ def _normalize_task_payload(payload: dict, current: Optional[dict] = None) -> di
         "max_emails_per_day": max(int(base.get("max_emails_per_day") or 50), 1),
         "delay_between_sends_seconds": max(int(base.get("delay_between_sends_seconds") or 30), 0),
         "template_id": (base.get("template_id") or "").strip() or None,
+        "campaign_id": (base.get("campaign_id") or "").strip() or None,
     }
 
 
@@ -236,14 +239,14 @@ def create_task(payload: dict) -> dict:
             INSERT INTO scheduled_tasks (
                 id, name, task_type, source, status, interval_minutes, schedule_time, schedule_days,
                 start_date, end_date, prompt, auto_send, max_leads_per_run, min_score_to_send, results_per_query,
-                max_emails_per_day, delay_between_sends_seconds, template_id, last_run_at, next_run_at, last_result, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                max_emails_per_day, delay_between_sends_seconds, template_id, campaign_id, last_run_at, next_run_at, last_result, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 data["id"], data["name"], data["task_type"], data["source"], data["status"], data["interval_minutes"],
                 data["schedule_time"], data["schedule_days"], data["start_date"], data["end_date"], data["prompt"],
                 1 if data["auto_send"] else 0, data["max_leads_per_run"], data["min_score_to_send"], data["results_per_query"],
-                data["max_emails_per_day"], data["delay_between_sends_seconds"], data["template_id"], None, next_run_at, None, stamp, stamp,
+                data["max_emails_per_day"], data["delay_between_sends_seconds"], data["template_id"], data["campaign_id"], None, next_run_at, None, stamp, stamp,
             ),
         )
     return get_task(data["id"])
@@ -269,14 +272,14 @@ def update_task(task_id: str, payload: dict) -> Optional[dict]:
             UPDATE scheduled_tasks
             SET name=?, task_type=?, source=?, status=?, interval_minutes=?, schedule_time=?, schedule_days=?,
                 start_date=?, end_date=?, prompt=?, auto_send=?, max_leads_per_run=?, min_score_to_send=?,
-                results_per_query=?, max_emails_per_day=?, delay_between_sends_seconds=?, template_id=?, next_run_at=?, updated_at=?
+                results_per_query=?, max_emails_per_day=?, delay_between_sends_seconds=?, template_id=?, campaign_id=?, next_run_at=?, updated_at=?
             WHERE id=?
             """,
             (
                 data["name"], data["task_type"], data["source"], data["status"], data["interval_minutes"],
                 data["schedule_time"], data["schedule_days"], data["start_date"], data["end_date"], data["prompt"],
                 1 if data["auto_send"] else 0, data["max_leads_per_run"], data["min_score_to_send"], data["results_per_query"],
-                data["max_emails_per_day"], data["delay_between_sends_seconds"], data["template_id"], next_run_at, stamp, task_id,
+                data["max_emails_per_day"], data["delay_between_sends_seconds"], data["template_id"], data["campaign_id"], next_run_at, stamp, task_id,
             ),
         )
     return get_task(task_id)

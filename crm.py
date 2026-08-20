@@ -120,6 +120,20 @@ def init_db():
                 created_at TEXT NOT NULL,
                 FOREIGN KEY (contact_id) REFERENCES crm_contacts(id)
             );
+
+            CREATE TABLE IF NOT EXISTS campaigns (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                product_name TEXT NOT NULL,
+                product_description TEXT NOT NULL,
+                price_original REAL,
+                price_promo REAL,
+                scarcity_limit INTEGER,
+                tone_of_voice TEXT,
+                is_active INTEGER DEFAULT 1,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
             """
         )
 
@@ -127,6 +141,8 @@ def init_db():
         _ensure_column(conn, "leads", "identity_key", "TEXT")
         _ensure_column(conn, "leads", "crm_status", "TEXT")
         _ensure_column(conn, "leads", "source", "TEXT")
+        _ensure_column(conn, "leads", "campaign_id", "TEXT")
+        _ensure_column(conn, "crm_contacts", "campaign_id", "TEXT")
         _ensure_column(conn, "envios", "contact_id", "INTEGER")
         _ensure_column(conn, "envios", "attempt_no", "INTEGER DEFAULT 1")
         _ensure_column(conn, "envios", "status_after", "TEXT")
@@ -485,7 +501,7 @@ def upsert_contact(lead: dict, conn=None) -> dict:
                 SET identity_key = ?, identity_type = ?, normalized_email = ?, website_host = ?,
                     normalized_name = ?, normalized_city = ?, nome_empresa = ?, segmento = ?, cidade = ?,
                     primary_email = ?, telefone = ?, website = ?, instagram = ?, linkedin = ?,
-                    source = ?, status = ?, updated_at = ?
+                    source = ?, status = ?, campaign_id = ?, updated_at = ?
                 WHERE id = ?
                 """,
                 (
@@ -505,6 +521,7 @@ def upsert_contact(lead: dict, conn=None) -> dict:
                     payload["linkedin"] or current.get("linkedin"),
                     payload["source"] or current.get("source"),
                     next_status,
+                    lead.get("campaign_id") or current.get("campaign_id"),
                     now,
                     current["id"],
                 ),
@@ -519,8 +536,8 @@ def upsert_contact(lead: dict, conn=None) -> dict:
             INSERT INTO crm_contacts (
                 identity_key, identity_type, normalized_email, website_host, normalized_name, normalized_city,
                 nome_empresa, segmento, cidade, primary_email, telefone, website, instagram, linkedin,
-                source, status, send_count, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+                source, status, campaign_id, send_count, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
             """,
             (
                 identity_key,
@@ -539,6 +556,7 @@ def upsert_contact(lead: dict, conn=None) -> dict:
                 payload["linkedin"] or None,
                 payload["source"] or "google",
                 status,
+                lead.get("campaign_id"),
                 now,
                 now,
             ),
@@ -624,8 +642,8 @@ def save_leads(leads: list[dict], run_id: str) -> dict[int, int]:
                 """
                 INSERT INTO leads (
                     run_id, contact_id, identity_key, crm_status, nome_empresa, segmento, cidade, email, website,
-                    instagram, source, score, prioridade, angulo, sinais, criado_em
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    instagram, source, score, prioridade, angulo, sinais, campaign_id, criado_em
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     run_id,
@@ -643,6 +661,7 @@ def save_leads(leads: list[dict], run_id: str) -> dict[int, int]:
                     lead.get("prioridade"),
                     lead.get("angulo"),
                     json.dumps(lead.get("sinais", []), ensure_ascii=False),
+                    lead.get("campaign_id"),
                     _now(),
                 ),
             )

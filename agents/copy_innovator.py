@@ -1,7 +1,7 @@
 """
 Motor de Inovação Contínua de Copy & Templates.
 Gera periodicamente novas abordagens de alta conversão ('Cavalo de Tróia')
-com base nos serviços da UltraWeb e nos segmentos de mercado mais lucrativos.
+com base nos serviços e nos segmentos de mercado mais lucrativos.
 """
 import json
 import logging
@@ -51,11 +51,14 @@ SERVICES_KNOWLEDGE = [
 def generate_innovative_template(service_focus: Optional[str] = None) -> Dict[str, Any]:
     """Gera uma nova abordagem inteligente de e-mail 'Cavalo de Tróia' usando IA."""
     company = get_company()
+    co_name = company.get("name") or "BigBoss OS"
+    co_desc = company.get("description") or "empresa de tecnologia e prospecção de negócios"
+    co_sender = company.get("contact_name") or company.get("name") or "Fabio"
     current_templates = get_templates()
     existing_labels = [t.get("label") for t in current_templates]
 
-    prompt = f"""Você é o copywriter principal e estrategista de vendas B2B da UltraWeb Agência Digital.
-A UltraWeb atua há 15 anos com marketing 360°, e-commerce, Google Partner e Shopify Expert.
+    prompt = f"""Você é o copywriter principal e estrategista de vendas B2B da {co_name}.
+{co_name} atua com {co_desc}.
 
 SEU OBJETIVO:
 Criar um NOVO modelo de e-mail frio de prospecção no formato "Cavalo de Tróia" (Oferta de Diagnóstico / Lead Magnet de alto valor e baixíssimo atrito).
@@ -75,7 +78,7 @@ RETORNE APENAS UM OBJETO JSON COM A SEGUINTE ESTRUTURA:
   "label": "Cavalo de Tróia: [Nome Atraente da Abordagem]",
   "description": "Explicação de quando usar e para qual tipo de empresa",
   "assunto": "{{empresa}} — [assunto curioso e sem spam]",
-  "corpo": "Olá, {{empresa}}!\\n\\n[Corpo persuasivo com variáveis]\\n\\n[CTA suave e respeitoso]\\n\\nAtt,\\n{company.get('contact_name', 'Fabio')} | UltraWeb",
+  "corpo": "Olá, {{empresa}}!\\n\\n[Corpo persuasivo com variáveis]\\n\\n[CTA suave e respeitoso]\\n\\nAtt,\\n{co_sender} | {co_name}",
   "tags": ["tag1", "tag2", "tag3"],
   "angle_targets": ["angulo1", "angulo2"]
 }}"""

@@ -1596,8 +1596,8 @@
       <div class="ob-title">Quem vai enviar os emails?</div>
       <div class="ob-sub">Preencha os dados de quem assina os emails e recebe as respostas dos leads.</div>
       <div style="display:flex;flex-direction:column;gap:11px;margin-top:18px;">
-        <div class="field-wrap"><label class="label">Nome da empresa / agência</label><input id="ob-company" class="input" placeholder="Ex: UltraWeb Marketing"></div>
-        <div class="field-wrap"><label class="label">Seu nome (quem assina)</label><input id="ob-sender" class="input" placeholder="Ex: Fabio Mendes"></div>
+        <div class="field-wrap"><label class="label">Nome da empresa / agência</label><input id="ob-company" class="input" placeholder="Ex: Minha Empresa"></div>
+        <div class="field-wrap"><label class="label">Seu nome (quem assina)</label><input id="ob-sender" class="input" placeholder="Ex: Seu Nome"></div>
         <div class="field-wrap"><label class="label">Email para receber respostas</label><input id="ob-email" class="input" type="email" placeholder="voce@suaempresa.com"></div>
       </div>
       <div class="ob-actions">
@@ -1631,6 +1631,7 @@
       <button class="nav-item active" data-view="central" onclick="showView('central')"><i data-lucide="sparkles"></i><span>Captar clientes</span></button>
       <button class="nav-item" data-view="crm" onclick="showView('crm')"><i data-lucide="users"></i><span>Contatos</span></button>
       <button class="nav-item" data-view="inbox" onclick="showView('inbox')"><i data-lucide="inbox"></i><span>Caixa de Entrada</span><span id="inbox-badge" class="pill pill-green hidden" style="font-size:10px;padding:1px 6px;margin-left:auto;">0</span></button>
+      <button class="nav-item" data-view="campanhas" onclick="showView('campanhas')"><i data-lucide="megaphone"></i><span>Campanhas</span></button>
       <button class="nav-item" data-view="templates" onclick="showView('templates')"><i data-lucide="file-text"></i><span>Templates</span></button>
       <button class="nav-item" data-view="configuracoes" onclick="showView('configuracoes')"><i data-lucide="settings-2"></i><span>Configurações</span></button>
     </nav>
@@ -1998,7 +1999,80 @@
         </div>
       </div>
     </section>
+    <section id="view-campanhas" class="layout-grid hidden" style="grid-template-columns: 1.2fr 1fr; gap: 24px; max-width: 1440px; margin: 0 auto; padding: 20px 0; align-items: start;">
+      
+      <!-- Esquerda: Lista de Campanhas (Cards) -->
+      <div class="card" style="box-shadow: var(--shadow-100); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: var(--surface);">
+        <div class="card-header" style="background: var(--surface); padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <div class="card-title" style="font-size: 15px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; margin: 0;">
+              <i data-lucide="megaphone" style="width: 18px; height: 18px; color: var(--primary);"></i> Suas Campanhas
+            </div>
+            <div class="card-subtitle" style="font-size: 12.5px; color: var(--subtle); margin-top: 2px;">Mapeie produtos e promoções específicas para prospecção segmentada.</div>
+          </div>
+          <button class="btn btn-primary" onclick="initNewCampaignForm()"><i data-lucide="plus" style="width: 14px; height: 14px; margin-right: 6px;"></i>Nova Campanha</button>
+        </div>
+        <div class="card-body" id="campaigns-list-container" style="padding: 24px; display: flex; flex-direction: column; gap: 16px; min-height: 200px;">
+          <!-- Renderizado dinamicamente por JS -->
+        </div>
+      </div>
 
+      <!-- Direita: Formulário de Cadastro/Edição -->
+      <div class="card" style="box-shadow: var(--shadow-100); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: var(--surface); position: sticky; top: 20px;">
+        <div class="card-header" style="background: var(--surface); padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div class="card-title" id="campaign-form-title" style="font-size: 15px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; margin: 0;">
+              <i data-lucide="edit-3" style="width: 18px; height: 18px; color: var(--primary);"></i> Cadastrar Campanha
+            </div>
+            <div class="card-subtitle" id="campaign-form-subtitle" style="font-size: 12.5px; color: var(--subtle); margin-top: 2px;">Crie uma oferta dedicada para alimentar a IA.</div>
+          </div>
+          <button class="btn btn-secondary" onclick="clearCampaignForm()">Limpar</button>
+        </div>
+        <div class="card-body" style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+          <input type="hidden" id="campaign-id-input">
+          
+          <div class="field-wrap">
+            <label class="label">Nome da Campanha (Referência interna)</label>
+            <input id="campaign-name" class="input" placeholder="Ex: Campanha E-commerce R$ 1.500">
+          </div>
+          
+          <div class="field-wrap">
+            <label class="label">Nome do Produto ou Serviço ofertado</label>
+            <input id="campaign-product-name" class="input" placeholder="Ex: Criação de E-commerce Profissional">
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="field-wrap">
+              <label class="label">Preço Original (R$)</label>
+              <input id="campaign-price-original" type="number" class="input" placeholder="Ex: 3500">
+            </div>
+            <div class="field-wrap">
+              <label class="label">Preço Promocional / Campanha (R$)</label>
+              <input id="campaign-price-promo" type="number" class="input" placeholder="Ex: 1500">
+            </div>
+          </div>
+          
+          <div class="field-wrap">
+            <label class="label">Limite de Vagas / Escassez (Opcional)</label>
+            <input id="campaign-scarcity-limit" type="number" class="input" placeholder="Ex: 50 (para gerar urgência na copy)">
+          </div>
+
+          <div class="field-wrap">
+            <label class="label">Descrição da Oferta / Promessa de valor (alimenta a IA)</label>
+            <textarea id="campaign-product-description" class="textarea" rows="4" placeholder="Ex: Plataforma de e-commerce completa, com cálculo de frete automático e gateway de pagamento integrado. Perfeito para automatizar o catálogo manual."></textarea>
+          </div>
+
+          <div class="field-wrap">
+            <label class="label">Instruções de Tom de Voz da Campanha (Opcional)</label>
+            <textarea id="campaign-tone-of-voice" class="textarea" rows="2" placeholder="Ex: Use um tom amigável e focado em resolver a dor do atendimento manual."></textarea>
+          </div>
+
+          <button class="btn btn-primary" onclick="saveCampaign()" style="width: 100%; margin-top: 8px;">
+            <i data-lucide="save" style="width: 14px; height: 14px; margin-right: 6px;"></i>Salvar Campanha
+          </button>
+        </div>
+      </div>
+    </section>
     <section id="view-tarefas" class="layout-grid hidden">
       <div class="tasks-shell">
         <div class="task-detail">
@@ -2047,7 +2121,7 @@
                   <label class="label">Quem você quer prospectar?</label>
                   <textarea id="task-prompt" class="textarea" rows="4" placeholder="Ex: Lojas de roupa em São Paulo com site fraco e pouca presença digital." oninput="updateTaskSmartLine()"></textarea>
                 </div>
-                <div class="form-row">
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:14px;">
                   <div class="field-wrap">
                     <label class="label">Modo</label>
                     <select id="task-auto-send" class="select" onchange="updateTaskSmartLine()">
@@ -2064,6 +2138,13 @@
                       <option value="30">Até 30 empresas</option>
                     </select>
                   </div>
+                  <div class="field-wrap">
+                    <label class="label">Campanha Associada</label>
+                    <select id="task-campaign-id" class="select" onchange="updateTaskSmartLine()">
+                      <option value="">(Nenhuma) Perfil Geral da Empresa</option>
+                    </select>
+                  </div>
+                </div>
                 <!-- Programação & Horários (Estilo Facebook Ads) -->
                 <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:18px 20px;margin:4px 0 6px 0;">
                   <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
@@ -2201,7 +2282,7 @@
               <span>⚡ Ação Recomendada Hoje: <span id="banner-whats-count" style="background:#16a34a;color:#fff;padding:2px 8px;border-radius:12px;font-size:12px;">0</span> contatos aguardam abordagem no WhatsApp</span>
             </div>
             <div style="font-size: 12.5px; color: #166534; margin-top: 2px;">
-              Estes leads receberam o e-mail da UltraWeb hoje. O contato complementar no WhatsApp aumenta em até 3x a taxa de resposta e agendamento!
+              Estes leads receberam seu e-mail de prospecção hoje. O contato complementar no WhatsApp aumenta em até 3x a taxa de resposta e agendamento!
             </div>
           </div>
         </div>
@@ -2418,6 +2499,7 @@
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <h2 id="dr-company-name" style="font-size:18px;font-weight:800;letter-spacing:-.02em;margin:0;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Nome da Empresa</h2>
         <a id="dr-website-link" href="#" target="_blank" style="color:var(--primary);font-size:12px;display:inline-flex;" title="Abrir site"><i data-lucide="external-link" style="width:14px;height:14px;"></i></a>
+        <span id="dr-campaign-badge"></span>
       </div>
       <div id="dr-company-meta" style="font-size:12px;color:var(--subtle);margin-top:3px;">Google · Segmento · Cidade</div>
     </div>
@@ -2582,7 +2664,7 @@
 
 <script>
 let currentView='central', curIdx=null, allLeads=[], evtSrc=null, templatesList=[], templatesMap={}, appSettings={}, templateDraftTags=[], tasksList=[], taskRunsList=[], selectedTaskId='', taskModalId='', activeTaskPreset='', tasksPollingTimer=null, taskModalCloseTimer=null, taskPendingRuns=new Set(), activeCRMTab='all', openDetailId=null;
-const pageMeta={central:{title:'Captar clientes',subtitle:'Descreva o cliente ideal e deixe o motor organizar a operação.'},tarefas:{title:'Rotinas',subtitle:'Automações que rodam sozinhas e abastecem a central.'},prospeccao:{title:'Captando',subtitle:'O motor está buscando, enriquecendo e organizando leads.'},crm:{title:'Contatos',subtitle:'Filas, carteira e histórico de relacionamento.'},inbox:{title:'Caixa de Entrada',subtitle:'Respostas dos leads, conversas e negociações em andamento.'},templates:{title:'Templates',subtitle:'Poucos templates bons, fáceis de manter.'},configuracoes:{title:'Configurações',subtitle:'Empresa, reply-to e limites do motor.'}};
+const pageMeta={central:{title:'Captar clientes',subtitle:'Descreva o cliente ideal e deixe o motor organizar a operação.'},tarefas:{title:'Rotinas',subtitle:'Automações que rodam sozinhas e abastecem a central.'},prospeccao:{title:'Captando',subtitle:'O motor está buscando, enriquecendo e organizando leads.'},crm:{title:'Contatos',subtitle:'Filas, carteira e histórico de relacionamento.'},inbox:{title:'Caixa de Entrada',subtitle:'Respostas dos leads, conversas e negociações em andamento.'},campanhas:{title:'Campanhas',subtitle:'Crie ofertas promocionais e produtos para segmentar seus envios.'},templates:{title:'Templates',subtitle:'Poucos templates bons, fáceis de manter.'},configuracoes:{title:'Configurações',subtitle:'Empresa, reply-to e limites do motor.'}};
 function pollInboxBadge(){
   fetch('/crm/replies?status=').then(r=>r.json()).then(rows=>{
     const badge = document.getElementById('inbox-badge');
@@ -2636,6 +2718,7 @@ function showView(name){
   if(name==='central')loadDashboard();
   if(name==='crm')loadCRM(activeCRMTab);
   if(name==='inbox')loadInbox();
+  if(name==='campanhas')loadCampaigns();
   if(name==='templates')loadTemplates();
   if(name==='tarefas'){loadTasks();startTasksPolling();}
   else if(name==='central'){loadDashboard();startTasksPolling();}
@@ -2741,6 +2824,181 @@ function loadDefaultSigPreset(){
   const sigHtml = buildDynamicSignature(c);
   setSignatureHtml(sigHtml);
   showToast({title:'Assinatura gerada',message:'Modelo padrão gerado com base no perfil da sua empresa.',tone:'success'});
+}
+
+let campaignsList = [];
+
+function loadCampaigns(){
+  fetch('/campaigns')
+    .then(r => r.json())
+    .then(data => {
+      campaignsList = data || [];
+      renderCampaignsList();
+      populateCampaignsDropdowns();
+    })
+    .catch(() => showToast({title: 'Erro', message: 'Não foi possível carregar as campanhas.', tone: 'error'}));
+}
+
+function renderCampaignsList(){
+  const container = document.getElementById('campaigns-list-container');
+  if(!container) return;
+  
+  if(campaignsList.length === 0){
+    container.innerHTML = `
+      <div style="text-align:center; padding:40px 20px; color:var(--subtle);">
+        <i data-lucide="megaphone" style="width:36px;height:36px;stroke-width:1.5;margin-bottom:12px;color:var(--gray-300);"></i>
+        <div style="font-size:13.5px;font-weight:600;">Nenhuma campanha cadastrada</div>
+        <div style="font-size:12px;margin-top:4px;">Crie sua primeira campanha à direita para começar.</div>
+      </div>
+    `;
+    initIcons();
+    return;
+  }
+  
+  container.innerHTML = campaignsList.map(c => {
+    const priceText = c.price_promo 
+      ? `<span style="font-weight:700;color:var(--green);">R$ ${c.price_promo}</span> ${c.price_original ? `<span style="text-decoration:line-through;font-size:11px;color:var(--subtle);margin-left:4px;">R$ ${c.price_original}</span>` : ''}`
+      : `<span style="color:var(--subtle);">Sob orçamento</span>`;
+      
+    const scarcityText = c.scarcity_limit 
+      ? `<span class="pill pill-yellow" style="font-size:10.5px;font-weight:600;"><i data-lucide="flame" style="width:10px;height:10px;margin-right:3px;"></i>${c.scarcity_limit} vagas</span>`
+      : '';
+
+    return `
+      <div class="card-item" style="border:1px solid var(--border);border-radius:10px;padding:18px 20px;background:#ffffff;display:flex;justify-content:space-between;align-items:start;gap:16px;box-shadow:var(--sh-xs);transition:border-color 0.2s;">
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <h4 style="margin:0;font-size:14.5px;font-weight:700;color:var(--text);">${escapeHtml(c.name)}</h4>
+            ${scarcityText}
+          </div>
+          <div style="font-size:11px;color:var(--subtle);font-family:monospace;margin-top:2px;">ID: ${c.id}</div>
+          
+          <div style="margin-top:10px;font-size:13px;font-weight:600;color:var(--text-main);display:flex;align-items:center;gap:6px;">
+            <span style="font-size:12px;color:var(--subtle);font-weight:normal;">Produto:</span> ${escapeHtml(c.product_name)}
+          </div>
+          
+          <div style="font-size:12.5px;color:var(--subtle);margin-top:6px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+            ${escapeHtml(c.product_description)}
+          </div>
+          
+          <div style="display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap;">
+            <div style="font-size:13px;display:flex;align-items:center;gap:4px;">
+              <span style="font-size:12px;color:var(--subtle);">Oferta:</span> ${priceText}
+            </div>
+          </div>
+        </div>
+        
+        <div style="display:flex;gap:6px;flex-shrink:0;">
+          <button class="btn btn-secondary" style="padding:6px 10px;height:30px;font-size:12px;" onclick="editCampaign('${c.id}')" title="Editar">
+            <i data-lucide="edit-2" style="width:13px;height:13px;"></i>
+          </button>
+          <button class="btn btn-secondary" style="padding:6px 10px;height:30px;font-size:12px;color:var(--red);" onclick="deleteCampaign('${c.id}')" title="Excluir">
+            <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+  initIcons();
+}
+
+function initNewCampaignForm(){
+  clearCampaignForm();
+  document.getElementById('campaign-form-title').innerHTML = `<i data-lucide="plus" style="width:18px;height:18px;color:var(--primary);"></i>Nova Campanha`;
+  document.getElementById('campaign-form-subtitle').textContent = `Defina uma oferta dedicada para alimentar a IA.`;
+  initIcons();
+}
+
+function clearCampaignForm(){
+  document.getElementById('campaign-id-input').value = '';
+  document.getElementById('campaign-name').value = '';
+  document.getElementById('campaign-product-name').value = '';
+  document.getElementById('campaign-price-original').value = '';
+  document.getElementById('campaign-price-promo').value = '';
+  document.getElementById('campaign-scarcity-limit').value = '';
+  document.getElementById('campaign-product-description').value = '';
+  document.getElementById('campaign-tone-of-voice').value = '';
+}
+
+function editCampaign(id){
+  const c = campaignsList.find(x => x.id === id);
+  if(!c) return;
+  document.getElementById('campaign-id-input').value = c.id;
+  document.getElementById('campaign-name').value = c.name || '';
+  document.getElementById('campaign-product-name').value = c.product_name || '';
+  document.getElementById('campaign-price-original').value = c.price_original !== null ? c.price_original : '';
+  document.getElementById('campaign-price-promo').value = c.price_promo !== null ? c.price_promo : '';
+  document.getElementById('campaign-scarcity-limit').value = c.scarcity_limit !== null ? c.scarcity_limit : '';
+  document.getElementById('campaign-product-description').value = c.product_description || '';
+  document.getElementById('campaign-tone-of-voice').value = c.tone_of_voice || '';
+  
+  document.getElementById('campaign-form-title').innerHTML = `<i data-lucide="edit-3" style="width:18px;height:18px;color:var(--primary);"></i>Editar Campanha`;
+  document.getElementById('campaign-form-subtitle').textContent = `Atualize a oferta e as regras do produto.`;
+  initIcons();
+}
+
+function saveCampaign(){
+  const name = document.getElementById('campaign-name').value.trim();
+  const product_name = document.getElementById('campaign-product-name').value.trim();
+  const product_description = document.getElementById('campaign-product-description').value.trim();
+  
+  if(!name || !product_name || !product_description){
+    showToast({title: 'Erro', message: 'Preencha Nome, Produto e Descrição da Oferta.', tone: 'error'});
+    return;
+  }
+  
+  const payload = {
+    id: document.getElementById('campaign-id-input').value,
+    name: name,
+    product_name: product_name,
+    product_description: product_description,
+    price_original: document.getElementById('campaign-price-original').value,
+    price_promo: document.getElementById('campaign-price-promo').value,
+    scarcity_limit: document.getElementById('campaign-scarcity-limit').value,
+    tone_of_voice: document.getElementById('campaign-tone-of-voice').value,
+    is_active: 1
+  };
+  
+  fetch('/campaigns', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  })
+  .then(r => r.json())
+  .then(data => {
+    showToast({title: 'Sucesso', message: 'Campanha salva com sucesso!', tone: 'success'});
+    initNewCampaignForm();
+    loadCampaigns();
+  })
+  .catch(() => showToast({title: 'Erro', message: 'Falha ao salvar campanha.', tone: 'error'}));
+}
+
+function deleteCampaign(id){
+  if(!confirm('Tem certeza que deseja excluir esta campanha? Rotinas associadas serão desvinculadas.')) return;
+  fetch(`/campaigns/${id}`, {method: 'DELETE'})
+    .then(r => r.json())
+    .then(() => {
+      showToast({title: 'Sucesso', message: 'Campanha excluída.', tone: 'success'});
+      loadCampaigns();
+    })
+    .catch(() => showToast({title: 'Erro', message: 'Falha ao excluir campanha.', tone: 'error'}));
+}
+
+function populateCampaignsDropdowns(){
+  const select = document.getElementById('task-campaign-id');
+  if(select){
+    const val = select.value;
+    select.innerHTML = '<option value="">(Nenhuma) Perfil Geral da Empresa</option>';
+    campaignsList.forEach(c => {
+      if(c.is_active){
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.name;
+        select.appendChild(opt);
+      }
+    });
+    select.value = val;
+  }
 }
 
 function updateSidebarSummary(){
@@ -2923,11 +3181,11 @@ function summarizeRun(run){if(!run)return'Sem execução ainda.';if(run.status==
 function updateTaskPresetVisual(){document.querySelectorAll('[data-preset]').forEach(el=>el.classList.toggle('active',el.dataset.preset===activeTaskPreset));}
 function updateTaskSmartLine(){const interval=taskIntervalLabel(document.getElementById('task-interval').value||1440);const maxLeads=document.getElementById('task-max-leads').value||10;const autoSend=document.getElementById('task-auto-send').value==='true';const schedTime=document.getElementById('task-schedule-time')?.value||'09:30';const schedDays=document.getElementById('task-schedule-days')?.value==='all'?'todos os dias':'de segunda a sexta';const prompt=document.getElementById('task-prompt').value.trim();const target=prompt?prompt.toLowerCase().replace(/\.$/,''):'empresas com potencial';const source=sourceLabel(document.getElementById('task-source')?.value||'google');document.getElementById('task-smart-line').innerHTML=`<i data-lucide="sparkles"></i><span>Às <strong>${schedTime}</strong> (${schedDays}), o motor ${escapeHtml(source)} vai buscar até ${maxLeads} empresas ("${escapeHtml(target)}") e ${autoSend?'enviar os emails sozinho dentro dos limites seguros.':'deixar os emails prontos para você revisar.'}</span>`;updateTaskPresetVisual();initIcons();}
 function applyTaskPreset(kind){const presets={gentle:{interval:'1440',time:'09:30',days:'weekdays',maxLeads:'5',autoSend:'false',minScore:'7',results:'8',maxEmails:'20',delay:'30'},steady:{interval:'1440',time:'11:00',days:'weekdays',maxLeads:'10',autoSend:'false',minScore:'7',results:'10',maxEmails:'40',delay:'30'},handsfree:{interval:'1440',time:'14:30',days:'weekdays',maxLeads:'15',autoSend:'true',minScore:'8',results:'10',maxEmails:'50',delay:'30'}};const preset=presets[kind];if(!preset)return;activeTaskPreset=kind;document.getElementById('task-interval').value=preset.interval;if(document.getElementById('task-schedule-time'))document.getElementById('task-schedule-time').value=preset.time;if(document.getElementById('task-schedule-days'))document.getElementById('task-schedule-days').value=preset.days;document.getElementById('task-max-leads').value=preset.maxLeads;document.getElementById('task-auto-send').value=preset.autoSend;document.getElementById('task-min-score').value=preset.minScore;document.getElementById('task-results-per-query').value=preset.results;document.getElementById('task-max-emails-day').value=preset.maxEmails;document.getElementById('task-delay').value=preset.delay;updateTaskSmartLine();showToast({title:'Modelo aplicado',message:'Você pode ajustar os detalhes antes de salvar.',tone:'info'});}
-function taskPayload(){return{id:co('task-id'),name:co('task-name'),source:document.getElementById('task-source').value||'google',prompt:document.getElementById('task-prompt').value.trim(),interval_minutes:Number(co('task-interval')||1440),schedule_time:document.getElementById('task-schedule-time')?.value||'09:30',schedule_days:document.getElementById('task-schedule-days')?.value||'weekdays',start_date:document.getElementById('task-start-date')?.value||null,end_date:document.getElementById('task-end-date')?.value||null,max_leads_per_run:Number(co('task-max-leads')||10),min_score_to_send:Number(co('task-min-score')||7),results_per_query:Number(co('task-results-per-query')||10),max_emails_per_day:Number(co('task-max-emails-day')||50),delay_between_sends_seconds:Number(co('task-delay')||30),auto_send:document.getElementById('task-auto-send').value==='true',status:document.getElementById('task-status').value,task_type:'full_cycle'};}
+function taskPayload(){return{id:co('task-id'),name:co('task-name'),source:document.getElementById('task-source').value||'google',prompt:document.getElementById('task-prompt').value.trim(),interval_minutes:Number(co('task-interval')||1440),schedule_time:document.getElementById('task-schedule-time')?.value||'09:30',schedule_days:document.getElementById('task-schedule-days')?.value||'weekdays',start_date:document.getElementById('task-start-date')?.value||null,end_date:document.getElementById('task-end-date')?.value||null,max_leads_per_run:Number(co('task-max-leads')||10),min_score_to_send:Number(co('task-min-score')||7),results_per_query:Number(co('task-results-per-query')||10),max_emails_per_day:Number(co('task-max-emails-day')||50),delay_between_sends_seconds:Number(co('task-delay')||30),auto_send:document.getElementById('task-auto-send').value==='true',campaign_id:document.getElementById('task-campaign-id')?.value||null,status:document.getElementById('task-status').value,task_type:'full_cycle'};}
 function startNewTask(){activeTaskPreset='';taskModalId='';resetTaskForm();closeTaskModal();renderTasksList();renderTaskRuns();showView('tarefas');window.scrollTo({top:0,behavior:'smooth'});}
 function closeTaskDetails(){activeTaskPreset='';taskModalId='';resetTaskForm();closeTaskModal();renderTasksList();renderTaskOverview();}
-function resetTaskForm(){selectedTaskId='';document.getElementById('task-id').value='';document.getElementById('task-name').value='';document.getElementById('task-source').value='google';document.getElementById('task-prompt').value='';document.getElementById('task-interval').value='1440';if(document.getElementById('task-schedule-time'))document.getElementById('task-schedule-time').value='09:30';if(document.getElementById('task-schedule-days'))document.getElementById('task-schedule-days').value='weekdays';if(document.getElementById('task-start-date'))document.getElementById('task-start-date').value=new Date().toISOString().slice(0,10);if(document.getElementById('task-end-date'))document.getElementById('task-end-date').value='';document.getElementById('task-max-leads').value='10';document.getElementById('task-min-score').value='7';document.getElementById('task-results-per-query').value='10';document.getElementById('task-max-emails-day').value='50';document.getElementById('task-delay').value='30';document.getElementById('task-auto-send').value='false';document.getElementById('task-status').value='active';updateTaskSmartLine();renderTasksList();}
-function fillTaskForm(id){const task=tasksList.find(item=>item.id===id);if(!task)return;selectedTaskId=id;activeTaskPreset='';document.getElementById('task-id').value=task.id||'';document.getElementById('task-name').value=task.name||'';document.getElementById('task-source').value=task.source||'google';document.getElementById('task-prompt').value=task.prompt||'';document.getElementById('task-interval').value=String(task.interval_minutes??1440);if(document.getElementById('task-schedule-time'))document.getElementById('task-schedule-time').value=task.schedule_time||'09:30';if(document.getElementById('task-schedule-days'))document.getElementById('task-schedule-days').value=task.schedule_days||'weekdays';if(document.getElementById('task-start-date'))document.getElementById('task-start-date').value=task.start_date||'';if(document.getElementById('task-end-date'))document.getElementById('task-end-date').value=task.end_date||'';document.getElementById('task-max-leads').value=String(task.max_leads_per_run??10);document.getElementById('task-min-score').value=task.min_score_to_send??7;document.getElementById('task-results-per-query').value=task.results_per_query??10;document.getElementById('task-max-emails-day').value=task.max_emails_per_day??50;document.getElementById('task-delay').value=task.delay_between_sends_seconds??30;document.getElementById('task-auto-send').value=String(!!task.auto_send);document.getElementById('task-status').value=task.status||'active';updateTaskSmartLine();closeTaskModal();renderTasksList();renderTaskRuns();showView('tarefas');window.scrollTo({top:0,behavior:'smooth'});}
+function resetTaskForm(){selectedTaskId='';document.getElementById('task-id').value='';document.getElementById('task-name').value='';document.getElementById('task-source').value='google';document.getElementById('task-prompt').value='';document.getElementById('task-interval').value='1440';if(document.getElementById('task-schedule-time'))document.getElementById('task-schedule-time').value='09:30';if(document.getElementById('task-schedule-days'))document.getElementById('task-schedule-days').value='weekdays';if(document.getElementById('task-start-date'))document.getElementById('task-start-date').value=new Date().toISOString().slice(0,10);if(document.getElementById('task-end-date'))document.getElementById('task-end-date').value='';document.getElementById('task-max-leads').value='10';document.getElementById('task-min-score').value='7';document.getElementById('task-results-per-query').value='10';document.getElementById('task-max-emails-day').value='50';document.getElementById('task-delay').value='30';document.getElementById('task-auto-send').value='false';if(document.getElementById('task-campaign-id'))document.getElementById('task-campaign-id').value='';document.getElementById('task-status').value='active';updateTaskSmartLine();renderTasksList();}
+function fillTaskForm(id){const task=tasksList.find(item=>item.id===id);if(!task)return;selectedTaskId=id;activeTaskPreset='';document.getElementById('task-id').value=task.id||'';document.getElementById('task-name').value=task.name||'';document.getElementById('task-source').value=task.source||'google';document.getElementById('task-prompt').value=task.prompt||'';document.getElementById('task-interval').value=String(task.interval_minutes??1440);if(document.getElementById('task-schedule-time'))document.getElementById('task-schedule-time').value=task.schedule_time||'09:30';if(document.getElementById('task-schedule-days'))document.getElementById('task-schedule-days').value=task.schedule_days||'weekdays';if(document.getElementById('task-start-date'))document.getElementById('task-start-date').value=task.start_date||'';if(document.getElementById('task-end-date'))document.getElementById('task-end-date').value=task.end_date||'';document.getElementById('task-max-leads').value=String(task.max_leads_per_run??10);document.getElementById('task-min-score').value=task.min_score_to_send??7;document.getElementById('task-results-per-query').value=task.results_per_query??10;document.getElementById('task-max-emails-day').value=task.max_emails_per_day??50;document.getElementById('task-delay').value=task.delay_between_sends_seconds??30;document.getElementById('task-auto-send').value=String(!!task.auto_send);if(document.getElementById('task-campaign-id'))document.getElementById('task-campaign-id').value=task.campaign_id||'';document.getElementById('task-status').value=task.status||'active';updateTaskSmartLine();closeTaskModal();renderTasksList();renderTaskRuns();showView('tarefas');window.scrollTo({top:0,behavior:'smooth'});}
 function openTaskModal(id){const task=tasksList.find(item=>item.id===id);if(!task)return;taskModalId=id;renderTasksList();renderTaskModal();const modal=document.getElementById('task-detail-modal');if(taskModalCloseTimer){clearTimeout(taskModalCloseTimer);taskModalCloseTimer=null;}modal.classList.remove('hidden');requestAnimationFrame(()=>modal.classList.add('is-open'));}
 function closeTaskModal(e){const modal=document.getElementById('task-detail-modal');if(!modal)return;if(e&&e.target!==modal)return;modal.classList.remove('is-open');taskModalId='';renderTasksList();if(taskModalCloseTimer)clearTimeout(taskModalCloseTimer);taskModalCloseTimer=setTimeout(()=>{modal.classList.add('hidden');taskModalCloseTimer=null;},220);}
 function renderTaskFocusCard(){return;}
@@ -3534,11 +3792,17 @@ function renderPlaybookView() {
   const signals = Array.isArray(lead.sinais) ? lead.sinais : (lead.sinais ? JSON.parse(lead.sinais) : []);
   const techs = Array.isArray(lead.tecnologias) ? lead.tecnologias : (lead.tecnologias ? JSON.parse(lead.tecnologias) : []);
   
+  const camp = campaignsList.find(c => c.id === lead.campaign_id);
+  const campHtml = camp ? `<span class="pill pill-green" style="font-size:11px; font-weight:700; display:inline-flex; align-items:center; gap:3px;"><i data-lucide="megaphone" style="width:11px;height:11px;"></i>${escapeHtml(camp.name)}</span>` : '';
+
   container.innerHTML = `
     <div style="margin-bottom:16px;">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; flex-wrap:wrap;">
         <h2 style="margin:0; font-size:18px; font-weight:800; color:var(--text);">${escapeHtml(lead.nome_empresa || 'Empresa')}</h2>
-        <span class="pill pill-blue" style="font-size:11px;">${escapeHtml(sourceLabel(lead.source || 'google'))}</span>
+        <div style="display:flex; gap:6px; align-items:center;">
+          ${campHtml}
+          <span class="pill pill-blue" style="font-size:11px;">${escapeHtml(sourceLabel(lead.source || 'google'))}</span>
+        </div>
       </div>
       <div style="font-size:12.5px; color:var(--subtle); margin-top:4px;">
         ${lead.segmento ? `🏷️ <strong>${escapeHtml(lead.segmento)}</strong>` : ''} 
@@ -3741,8 +4005,10 @@ async function openSocialMediaWithAIScript(contactId, platform, contactValue, co
   }
   
   if (!script) {
+    const coName = appSettings.company?.name || 'nossa equipe';
+    const senderName = appSettings.sender?.name || 'comercial';
     if (platform === 'whatsapp') {
-      script = `Olá! Sou o Fabio da UltraWeb. Te enviei um e-mail com uma análise rápida da presença digital da ${companyName||'sua empresa'}, conseguiu dar uma olhada por lá?`;
+      script = `Olá! Sou o ${senderName} da ${coName}. Te enviei um e-mail com uma análise rápida da presença digital da ${companyName||'sua empresa'}, conseguiu dar uma olhada por lá?`;
     } else if (platform === 'instagram') {
       script = `Olá! Tudo bem com vocês da ${companyName||'sua empresa'}?\n\nVi o perfil de vocês aqui no Instagram e achei excelente. Notei um detalhe simples no feed/link que pode estar fazendo vocês perderem clientes locais. Fizemos uma análise rápida com dicas para resolver isso. Faz sentido enviar por aqui?`;
     } else {
@@ -3913,6 +4179,15 @@ function openLeadDrawer(id){
     if(siteLink){
       siteLink.href = c.website || '#';
       siteLink.style.display = c.website ? 'inline-flex' : 'none';
+    }
+    const drCampBadge = document.getElementById('dr-campaign-badge');
+    if(drCampBadge){
+      const camp = campaignsList.find(x => x.id === c.campaign_id);
+      if(camp){
+        drCampBadge.innerHTML = `<span class="pill pill-green" style="font-size:10px;padding:1px 5px;font-weight:700;display:inline-flex;align-items:center;gap:3px;"><i data-lucide="megaphone" style="width:9px;height:9px;"></i>${escapeHtml(camp.name)}</span>`;
+      } else {
+        drCampBadge.innerHTML = '';
+      }
     }
     document.getElementById('dr-company-meta').textContent = `${sourceLabel(c.source||'google')}${c.segmento?' · '+c.segmento:''}${c.cidade?' · '+c.cidade:''}`;
     
@@ -4333,10 +4608,14 @@ function selectInboxConversation(contactId){
     const headerHtml = `
       <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--surface);">
         <div>
-          <div style="display:flex;align-items:center;gap:8px;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
             <h2 style="font-size:16px;font-weight:800;margin:0;color:var(--text);">${escapeHtml(c.nome_empresa || 'Empresa')}</h2>
             ${c.website ? `<a href="${escapeHtml(c.website)}" target="_blank" style="color:var(--primary);"><i data-lucide="external-link" style="width:13px;height:13px;"></i></a>` : ''}
             <span class="pill ${st.cls}" style="font-size:11px;">${st.label}</span>
+            ${(() => {
+              const camp = campaignsList.find(x => x.id === c.campaign_id);
+              return camp ? `<span class="pill pill-green" style="font-size:9.5px;padding:1px 5px;font-weight:700;display:inline-flex;align-items:center;gap:3px;"><i data-lucide="megaphone" style="width:9px;height:9px;"></i>${escapeHtml(camp.name)}</span>` : '';
+            })()}
           </div>
           <div style="font-size:12px;color:var(--subtle);margin-top:2px;">${escapeHtml(c.primary_email || '')} ${c.telefone ? '· ' + escapeHtml(c.telefone) : ''}</div>
         </div>
@@ -4723,6 +5002,10 @@ function renderCRMView(){
             <div class="company-name" style="font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:6px;">
               ${escapeHtml(row.nome_empresa || '-')}
               ${row.website ? `<a href="${escapeHtml(row.website)}" target="_blank" onclick="event.stopPropagation()" style="color:var(--primary);font-size:11px;display:inline-flex;" title="Abrir site"><i data-lucide="external-link" style="width:12px;height:12px;"></i></a>` : ''}
+              ${(() => {
+                const camp = campaignsList.find(c => c.id === row.campaign_id);
+                return camp ? `<span class="pill pill-green" style="font-size:9.5px;padding:1px 5px;font-weight:700;display:inline-flex;align-items:center;gap:3px;"><i data-lucide="megaphone" style="width:9px;height:9px;"></i>${escapeHtml(camp.name)}</span>` : '';
+              })()}
             </div>
             <div class="company-meta" style="font-size:11.5px;margin-top:2px;">${escapeHtml(sourceLabel(row.source || 'google'))}${row.routine_name ? ` · <span style="color:#2563eb;font-weight:600;">${escapeHtml(row.routine_name)}</span>` : (row.segmento ? ' · ' + escapeHtml(row.segmento) : '')}${row.cidade ? ' · ' + escapeHtml(row.cidade) : ''}</div>
           </div>
@@ -4769,6 +5052,9 @@ function renderCRMView(){
                   )
                   : '');
 
+              const kCamp = campaignsList.find(c => c.id === lead.campaign_id);
+              const kCampHtml = kCamp ? `<div style="margin-top:4px;"><span class="pill pill-green" style="font-size:9.5px;padding:1px 5px;font-weight:700;display:inline-flex;align-items:center;gap:3px;"><i data-lucide="megaphone" style="width:8px;height:8px;"></i>${escapeHtml(kCamp.name)}</span></div>` : '';
+
               return `
               <div class="kanban-card" onclick="openLeadDrawer(${lead.id})">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;">
@@ -4776,6 +5062,7 @@ function renderCRMView(){
                   <span class="pill pill-blue" style="font-size:9.5px;padding:2px 6px;">${escapeHtml(sourceLabel(lead.source || 'google'))}</span>
                 </div>
                 <div class="tiny" style="color:var(--subtle);line-height:1.3;">${escapeHtml(lead.segmento || lead.cidade || '')}</div>
+                ${kCampHtml}
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding-top:4px;border-top:1px dashed var(--border);">
                   <span style="font-size:11px;color:var(--subtle);">${escapeHtml(lead.primary_email ? (lead.primary_email.length > 20 ? lead.primary_email.slice(0, 18) + '...' : lead.primary_email) : 'sem e-mail')}</span>
                   ${kAction}
@@ -5150,19 +5437,21 @@ function updateCentralRoutineHint(){
 // ── Auto-refresh ao acordar ou focar na aba ──
 window.addEventListener('focus', () => {
   loadTasks({ silent: true });
+  loadCampaigns();
   loadCRM();
   loadDashboardRoutines();
 });
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
     loadTasks({ silent: true });
+    loadCampaigns();
     loadCRM();
     loadDashboardRoutines();
   }
 });
 
 // ── Init ──
-bindTagInput();resetTaskForm();loadSettings();loadTemplates();loadTasks();updateCentralRoutineHint();
+bindTagInput();resetTaskForm();loadSettings();loadTemplates();loadCampaigns();loadTasks();updateCentralRoutineHint();
 const initialView = window.location.hash ? window.location.hash.substring(1) : 'central';
 showView(pageMeta[initialView] ? initialView : 'central');
 initIcons();initOnboarding();checkServerState();

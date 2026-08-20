@@ -98,9 +98,13 @@ def mark_whatsapp_sent(contact_id: int) -> Dict[str, Any]:
     return {"status": "ok", "contact_id": contact_id}
 
 
-def send_daily_digest_alert(to_email: str = "fabio@ultraweb.com.br") -> Dict[str, Any]:
+def send_daily_digest_alert(to_email: Optional[str] = None) -> Dict[str, Any]:
     """Envia o Relatório Executivo Diário de Prospecção com riqueza total de dados para o e-mail do usuário."""
     config = get_runtime_config()
+    co_name = config.get("company", {}).get("name") or "BigBoss OS"
+    sender_name = config.get("sender", {}).get("name") or "Fabio"
+    if not to_email:
+        to_email = config.get("sender", {}).get("reply_to_email") or config.get("sender", {}).get("email") or "fabio@ultraweb.com.br"
     stats = crm.get_stats()
     queue = get_daily_whatsapp_queue()
     pending_whats = [q for q in queue if not q.get("whats_sent")]
@@ -200,7 +204,7 @@ def send_daily_digest_alert(to_email: str = "fabio@ultraweb.com.br") -> Dict[str
         <div style="padding-bottom: 18px; border-bottom: 2px solid #2563eb; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
           <div>
             <h2 style="margin: 0; color: #0f172a; font-size: 20px;">📊 Relatório Executivo de Outbound</h2>
-            <p style="margin: 4px 0 0 0; color: #64748b; font-size: 13px;">UltraWeb · Resumo Estratégico & Fila de Conversão ({today_str})</p>
+            <p style="margin: 4px 0 0 0; color: #64748b; font-size: 13px;">{co_name} · Resumo Estratégico & Fila de Conversão ({today_str})</p>
           </div>
           <div style="text-align: right;">
             <span style="font-size: 12px; font-weight: 700; color: #16a34a; background: #dcfce7; padding: 4px 10px; border-radius: 20px;">● Operação Ativa</span>
@@ -264,7 +268,7 @@ def send_daily_digest_alert(to_email: str = "fabio@ultraweb.com.br") -> Dict[str
 
         <!-- Footer -->
         <div style="margin-top: 32px; padding-top: 18px; border-top: 1px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 12px;">
-          Vendor OS / UltraWeb Outbound Engine · <a href="http://127.0.0.1:7860" style="color: #2563eb; text-decoration: none; font-weight: 600;">Abrir Painel de Controle</a>
+          BigBoss OS Outbound Engine · <a href="http://127.0.0.1:7860" style="color: #2563eb; text-decoration: none; font-weight: 600;">Abrir Painel de Controle</a>
         </div>
       </div>
     </body>
@@ -272,7 +276,7 @@ def send_daily_digest_alert(to_email: str = "fabio@ultraweb.com.br") -> Dict[str
     """
 
     payload = {
-        "nome_empresa": "Fabio da Ultraweb",
+        "nome_empresa": f"{sender_name} | {co_name}",
         "email": to_email,
         "email_assunto": subject,
         "email_corpo": f"Relatório executivo diário de outbound com {len(contact_rows)} leads e {len(pending_whats)} WhatsApps pendentes.",

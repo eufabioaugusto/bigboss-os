@@ -101,6 +101,7 @@ def _task_config(base_config: dict, task: dict) -> dict:
     config["source"] = task.get("source") or "google"
     config["mode"] = "auto" if task.get("auto_send") else "manual"
     config["template_id"] = task.get("template_id")
+    config["campaign_id"] = task.get("campaign_id")
     config.setdefault("limits", {})
     config.setdefault("search", {})
     config.setdefault("scoring", {})
@@ -140,6 +141,8 @@ def execute_pipeline(prompt: str, config: dict, *, progress_cb=None, publish_sta
     try:
         logger("Pesquisando leads...")
         leads = run_research(prompt, config, progress_cb=logger)
+        for lead in leads:
+            lead["campaign_id"] = config.get("campaign_id")
         logger(f"{len(leads)} leads encontrados.")
 
         if not leads:
@@ -330,13 +333,38 @@ def generate_pending_followups():
                 
             contact_full = crm.get_contact_full(contact_id)
             last_envio = next((e for e in contact_full.get("envios", [])), None)
+            
+            # Contexto de campanha no follow-up
+            camp_details = ""
+            campaign_id = contact.get("campaign_id")
+            if campaign_id:
+                try:
+                    with crm.get_conn() as conn:
+                        row = conn.execute("SELECT * FROM campaigns WHERE id = ?", (campaign_id,)).fetchone()
+                        if row:
+                            camp = dict(row)
+                            camp_details = f"\nOferta da Campanha Ativa ({camp.get('name')}):\n"
+                            camp_details += f"- Produto: {camp.get('product_name')}\n"
+                            camp_details += f"- Descrição: {camp.get('product_description')}\n"
+                            if camp.get("price_promo"):
+                                camp_details += f"- Preço Promocional: R$ {camp.get('price_promo')}\n"
+                            if camp.get("price_original"):
+                                camp_details += f"- Preço Original: R$ {camp.get('price_original')}\n"
+                            if camp.get("scarcity_limit"):
+                                camp_details += f"- Limite/Vagas: {camp.get('scarcity_limit')}\n"
+                            if camp.get("tone_of_voice"):
+                                camp_details += f"- Tom de voz: {camp.get('tone_of_voice')}\n"
+                except Exception:
+                    pass
+
             context = (
                 f"Empresa: {contact['nome_empresa']}\n"
                 f"Segmento: {contact['segmento']}\n"
                 f"Último email enviado em: {last_envio['enviado_em'] if last_envio else 'desconhecido'}\n"
                 f"Assunto anterior: {contact.get('email_draft_assunto') or (last_envio or {}).get('assunto', '')}\n"
                 f"Corpo anterior: {(last_envio or {}).get('corpo', '')[:400]}\n"
-                f"Notas: {'; '.join(n['note'] for n in contact_full.get('notes', []))}"
+                f"Notas: {'; '.join(n['note'] for n in contact_full.get('notes', []))}\n"
+                f"{camp_details}"
             )
             
             try:
@@ -809,6 +837,90 @@ def get_company_payload():
 async def save_company(req: Request):
     body = await req.json()
     return {"company": save_settings({"company": body}).get("company", {})}
+
+
+@app.get("/campaigns")
+def list_campaigns():
+    with crm.get_conn() as conn:
+        rows = conn.execute("SELECT * FROM campaigns ORDER BY created_at DESC").fetchall()
+        return [dict(r) for r in rows]
+
+
+@app.post("/campaigns")
+async def save_campaign_payload(req: Request):
+    body = await req.json()
+    campaign_id = body.get("id")
+    if not campaign_id:
+        from templates_store import _slugify
+        campaign_id = _slugify(body.get("name", "campanha"))
+    
+    name = body.get("name", "")
+    product_name = body.get("product_name", "")
+    product_description = body.get("product_description", "")
+    
+    price_original = body.get("price_original")
+    if price_original == "" or price_original is None:
+        price_original = None
+    else:
+        try:
+            price_original = float(price_original)
+        except ValueError:
+            price_original = None
+            
+    price_promo = body.get("price_promo")
+    if price_promo == "" or price_promo is None:
+        price_promo = None
+    else:
+        try:
+            price_promo = float(price_promo)
+        except ValueError:
+            price_promo = None
+            
+    scarcity_limit = body.get("scarcity_limit")
+    if scarcity_limit == "" or scarcity_limit is None:
+        scarcity_limit = None
+    else:
+        try:
+            scarcity_limit = int(scarcity_limit)
+        except ValueError:
+            scarcity_limit = None
+            
+    tone_of_voice = body.get("tone_of_voice", "")
+    is_active = int(body.get("is_active", 1))
+    
+    stamp = datetime.now().isoformat()
+    
+    with crm.get_conn() as conn:
+        exists = conn.execute("SELECT id FROM campaigns WHERE id = ?", (campaign_id,)).fetchone()
+        if exists:
+            conn.execute(
+                """
+                UPDATE campaigns
+                SET name = ?, product_name = ?, product_description = ?, price_original = ?, price_promo = ?, scarcity_limit = ?, tone_of_voice = ?, is_active = ?, updated_at = ?
+                WHERE id = ?
+                """,
+                (name, product_name, product_description, price_original, price_promo, scarcity_limit, tone_of_voice, is_active, stamp, campaign_id)
+            )
+        else:
+            conn.execute(
+                """
+                INSERT INTO campaigns (id, name, product_name, product_description, price_original, price_promo, scarcity_limit, tone_of_voice, is_active, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (campaign_id, name, product_name, product_description, price_original, price_promo, scarcity_limit, tone_of_voice, is_active, stamp, stamp)
+            )
+        conn.commit()
+        
+    return {"status": "ok", "id": campaign_id}
+
+
+@app.delete("/campaigns/{campaign_id}")
+def delete_campaign_endpoint(campaign_id: str):
+    with crm.get_conn() as conn:
+        conn.execute("DELETE FROM campaigns WHERE id = ?", (campaign_id,))
+        conn.execute("UPDATE scheduled_tasks SET campaign_id = NULL WHERE campaign_id = ?", (campaign_id,))
+        conn.commit()
+    return {"status": "ok"}
 
 
 @app.get("/templates")
@@ -1503,6 +1615,34 @@ async def crm_followups_run_cycle(req: Request = None):
     return run_followup_cycle(config, min_days=min_days, max_attempts=max_attempts, limit=limit)
 
 
+def _resolve_campaign_override(contact: dict, co_name: str, config: dict) -> tuple[str, str]:
+    """Retorna o nome da empresa remetente e detalhes da oferta da campanha, se houver."""
+    campaign_id = contact.get("campaign_id")
+    offer_details = ""
+    if campaign_id:
+        import crm
+        try:
+            with crm.get_conn() as conn:
+                row = conn.execute("SELECT * FROM campaigns WHERE id = ?", (campaign_id,)).fetchone()
+                if row:
+                    camp = dict(row)
+                    co_name = camp.get("product_name") or co_name
+                    offer_details = f"\nDetalhes da Oferta Promocional Ativa ({camp.get('name')}):\n"
+                    offer_details += f"- Produto/Serviço: {camp.get('product_name')}\n"
+                    offer_details += f"- Oferta: {camp.get('product_description')}\n"
+                    if camp.get("price_promo"):
+                        offer_details += f"- Preço Promocional: R$ {camp.get('price_promo')}\n"
+                    if camp.get("price_original"):
+                        offer_details += f"- Preço Original: R$ {camp.get('price_original')}\n"
+                    if camp.get("scarcity_limit"):
+                        offer_details += f"- Escassez/Limite: {camp.get('scarcity_limit')} projetos/vagas restantes\n"
+                    if camp.get("tone_of_voice"):
+                        offer_details += f"- Tom de voz e regras adicionais de copy: {camp.get('tone_of_voice')}\n"
+        except Exception:
+            pass
+    return co_name, offer_details
+
+
 @app.post("/crm/contacts/{contact_id}/whatsapp-script")
 async def crm_whatsapp_script(contact_id: int):
     import crm
@@ -1513,10 +1653,12 @@ async def crm_whatsapp_script(contact_id: int):
         return JSONResponse({"error": "contact not found"}, status_code=404)
         
     config = load_config()
-    co_name = config.get("company", {}).get("name") or "UltraWeb"
+    co_name = config.get("company", {}).get("name") or "BigBoss OS"
     sender_name = config.get("sender", {}).get("name") or "Fabio"
+    co_name, offer_context = _resolve_campaign_override(contact, co_name, config)
     
     prompt = f"""Você é o especialista comercial da {co_name}.
+{offer_context}
 Crie uma mensagem curta, consultiva e de alto impacto para enviar no WhatsApp do seguinte lead:
 - Empresa: {contact.get('nome_empresa')}
 - Segmento: {contact.get('segmento')}
@@ -1529,7 +1671,7 @@ Crie uma mensagem curta, consultiva e de alto impacto para enviar no WhatsApp do
 Diretrizes:
 - Mensagem para WhatsApp: extremamente natural, sem parecer robô ou spam.
 - Quebre em 2 ou 3 parágrafos curtos.
-- Apresente-se ({sender_name} da {co_name}), elogie um ponto da empresa e faça uma pergunta aberta/convite para mostrar um diagnóstico rápido.
+- Apresente-se ({sender_name} da {co_name}), elogie um ponto da empresa e faça uma pergunta aberta/convite para mostrar um diagnóstico rápido ou apresentar a oferta/campanha detalhada.
 - Máximo 60 palavras.
 
 Retorne APENAS JSON no formato:
@@ -1556,10 +1698,12 @@ async def crm_instagram_script(contact_id: int):
         return JSONResponse({"error": "contact not found"}, status_code=404)
         
     config = load_config()
-    co_name = config.get("company", {}).get("name") or "UltraWeb"
+    co_name = config.get("company", {}).get("name") or "BigBoss OS"
     sender_name = config.get("sender", {}).get("name") or "Fabio"
+    co_name, offer_context = _resolve_campaign_override(contact, co_name, config)
     
     prompt = f"""Você é o especialista comercial da {co_name}.
+{offer_context}
 Crie uma mensagem super curta, informal e de altíssimo impacto para enviar no direct (DM) do Instagram do seguinte lead:
 - Empresa: {contact.get('nome_empresa')}
 - Segmento: {contact.get('segmento')}
@@ -1570,7 +1714,7 @@ Crie uma mensagem super curta, informal e de altíssimo impacto para enviar no d
 Diretrizes:
 - Mensagem para Instagram Direct: extremamente casual, curta, focada em rede social.
 - Evite jargões corporativos ou formalidades excessivas. Pode usar quebras de linha leves.
-- Mencione que viu o perfil deles no Instagram e identifique um gancho ou oportunidade de melhoria rápida (ex: falta de reels focados em conversão, ausência de link direto, feed pouco otimizado para vendas).
+- Mencione que viu o perfil deles no Instagram e identifique um gancho ou oportunidade de melhoria rápida, ou faça a chamada para a oferta promocional.
 - Faça uma pergunta de gancho simples para iniciar a conversa: "Faz sentido eu te mandar o link desse diagnóstico por aqui?" ou similar.
 - Máximo 45 palavras.
 
@@ -1598,10 +1742,12 @@ async def crm_tiktok_script(contact_id: int):
         return JSONResponse({"error": "contact not found"}, status_code=404)
         
     config = load_config()
-    co_name = config.get("company", {}).get("name") or "UltraWeb"
+    co_name = config.get("company", {}).get("name") or "BigBoss OS"
     sender_name = config.get("sender", {}).get("name") or "Fabio"
+    co_name, offer_context = _resolve_campaign_override(contact, co_name, config)
     
     prompt = f"""Você é o especialista comercial da {co_name}.
+{offer_context}
 Crie uma mensagem super curta, dinâmica e inovadora para enviar na DM do TikTok do seguinte lead:
 - Empresa: {contact.get('nome_empresa')}
 - Segmento: {contact.get('segmento')}
@@ -1610,8 +1756,8 @@ Crie uma mensagem super curta, dinâmica e inovadora para enviar na DM do TikTok
 - Gargalos/Sinais técnicos: {contact.get('sinais')}
 
 Diretrizes:
-- Mensagem para TikTok: tom moderno, dinâmico e focado em conteúdo visual (vídeos curtos, criativos para anúncios, posicionamento para audiência jovem).
-- Mencione que analisou a presença deles em vídeo ou TikTok Shop (se for e-commerce, ressalte a oportunidade do TikTok Shop).
+- Mensagem para TikTok: tom moderno, dinâmico e focado em conteúdo visual (vídeos curtos, criativos para anúncios, posicionamento para audiência jovem, ou integração com TikTok Shop).
+- Mencione que analisou a presença deles em vídeo ou TikTok Shop (ou a oferta da campanha).
 - Faça um convite direto e informal: "Faz sentido eu te mandar esse diagnóstico rápido?"
 - Máximo 45 palavras.
 

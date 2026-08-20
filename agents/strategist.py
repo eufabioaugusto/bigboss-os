@@ -1,5 +1,5 @@
 """
-Estrategista Autônomo de Segmentação & Geração Proativa de Rotinas da UltraWeb.
+Estrategista Autônomo de Segmentação & Geração Proativa de Rotinas do BigBoss OS.
 Cobre todo o ecossistema de serviços da agência (Varejo, Atacado, Clínicas, Escritórios, Experts, Vídeo e Tráfego).
 """
 import logging
@@ -11,7 +11,7 @@ from templates_store import get_templates
 
 logger = logging.getLogger(__name__)
 
-# Catálogo completo de nichos e serviços da UltraWeb ordenados por prioridade
+# Catálogo completo de nichos e serviços ordenados por prioridade
 HIGH_TICKET_NICHES_KB = [
     {
         "category": "Varejo Físico & Local",
