@@ -1103,19 +1103,40 @@ def run_instagram_automation_bg(contact_id: int, insta_url: str, message: str):
             inject_active_banner(page, "🤖 BIGBOSS OS: CARREGANDO PERFIL E POPUPS...")
             
             # Detecta se caiu na tela de login
-            if "accounts/login" in page.url or page.locator("input[name='username']").count() > 0:
+            is_login = False
+            try:
+                if "accounts/login" in page.url or page.locator("input[name='username']").count() > 0:
+                    is_login = True
+            except Exception:
+                pass
+                
+            if is_login:
                 print("[automação] Usuário não logado no Instagram. Aguardando login manual...")
                 crm.add_note(contact_id, "⚠️ O robô abriu o Instagram, mas detectou que você não está logado neste perfil de navegador. Por favor, faça login nesta janela nova (só uma vez) para a IA prosseguir.", author="system")
-                try:
-                    # Espera o login ser efetuado por até 120s
-                    for _ in range(120):
-                        time.sleep(1)
-                        if "accounts/login" not in page.url and page.locator("input[name='username']").count() == 0:
-                            break
-                    page.goto(insta_url)
-                    page.wait_for_load_state("networkidle")
-                    time.sleep(3)
-                except Exception:
+                
+                logged_in = False
+                # Espera o login ser efetuado por até 120s
+                for _ in range(120):
+                    time.sleep(1)
+                    try:
+                        # Se não estiver mais na URL de login e o campo de input sumir, login foi feito
+                        if "accounts/login" not in page.url:
+                            username_count = page.locator("input[name='username']").count()
+                            if username_count == 0:
+                                logged_in = True
+                                break
+                    except Exception:
+                        # Abstrai erros de consulta de elementos durante a navegação/transição de página
+                        pass
+                
+                if logged_in:
+                    try:
+                        page.goto(insta_url)
+                        page.wait_for_load_state("networkidle")
+                        time.sleep(3)
+                    except Exception as exc:
+                        print(f"[automação] erro ao carregar perfil pós login: {exc}")
+                else:
                     print("[automação] Tempo esgotado esperando o login.")
                     return
             
