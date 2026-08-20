@@ -1055,20 +1055,26 @@ def inject_active_banner(page, text="🤖 BIGBOSS OS: DIGITAÇÃO ATIVA... NÃO 
                 banner.id = 'bigboss-indicator';
                 document.body.appendChild(banner);
             }}
-            banner.style.position = 'fixed';
-            banner.style.top = '0';
-            banner.style.left = '0';
-            banner.style.width = '100%';
-            banner.style.backgroundColor = col;
-            banner.style.color = 'white';
-            banner.style.textAlign = 'center';
-            banner.style.padding = '12px';
-            banner.style.fontWeight = 'bold';
-            banner.style.zIndex = '999999999';
-            banner.style.fontSize = '15px';
-            banner.style.fontFamily = 'sans-serif';
-            banner.style.boxShadow = '0 4px 10px rgba(0,0,0,0.2)';
+            banner.style.setProperty('position', 'fixed', 'important');
+            banner.style.setProperty('top', '0', 'important');
+            banner.style.setProperty('left', '0', 'important');
+            banner.style.setProperty('width', '100%', 'important');
+            banner.style.setProperty('height', '40px', 'important');
+            banner.style.setProperty('line-height', '40px', 'important');
+            banner.style.setProperty('background-color', col, 'important');
+            banner.style.setProperty('color', 'white', 'important');
+            banner.style.setProperty('text-align', 'center', 'important');
+            banner.style.setProperty('font-weight', 'bold', 'important');
+            banner.style.setProperty('z-index', '2147483647', 'important');
+            banner.style.setProperty('font-size', '15px', 'important');
+            banner.style.setProperty('font-family', 'sans-serif', 'important');
+            banner.style.setProperty('box-shadow', '0 4px 10px rgba(0,0,0,0.3)', 'important');
             banner.innerText = msg;
+            
+            // Garante que o banner continue no topo da hierarquia visual se o React reordenar
+            if (document.body.lastChild !== banner) {{
+                document.body.appendChild(banner);
+            }}
         }}""", text, color)
     except Exception:
         pass
@@ -1230,7 +1236,16 @@ def run_instagram_automation_bg(contact_id: int, insta_url: str, message: str):
                 textbox.click()
                 time.sleep(1)
                 for char in message:
-                    textbox.type(char)
+                    if char == '\n':
+                        # Envia Shift+Enter para pular linha sem disparar o envio precoce
+                        page.keyboard.down("Shift")
+                        page.keyboard.press("Enter")
+                        page.keyboard.up("Shift")
+                    else:
+                        textbox.type(char)
+                    # Re-injeta o banner de status a cada 15 caracteres para contornar limpezas do React
+                    if random.random() < 0.08:
+                        inject_active_banner(page, "🤖 BIGBOSS OS: DIGITAÇÃO ATIVA... NÃO FECHE ESTA ABA")
                     time.sleep(random.uniform(0.04, 0.12))
                     
                 crm.add_note(contact_id, "🤖 Mensagem de direct digitada automaticamente via robô BigBoss OS.", author="system")
