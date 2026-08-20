@@ -930,6 +930,68 @@ def delete_campaign_endpoint(campaign_id: str):
     return {"status": "ok"}
 
 
+def _extract_emails_from_dict(val, found_emails=None) -> set[str]:
+    import re
+    if found_emails is None:
+        found_emails = set()
+        
+    email_regex = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
+    
+    if isinstance(val, dict):
+        for k, v in val.items():
+            _extract_emails_from_dict(v, found_emails)
+    elif isinstance(val, list):
+        for item in val:
+            _extract_emails_from_dict(item, found_emails)
+    elif isinstance(val, str):
+        val_clean = val.strip().lower()
+        if "@" in val_clean and email_regex.match(val_clean):
+            found_emails.add(val_clean)
+            
+    return found_emails
+
+
+@app.post("/webhooks/booking")
+async def webhook_booking(req: Request):
+    import crm
+    crm.init_db()
+    
+    try:
+        payload = await req.json()
+    except Exception:
+        return JSONResponse({"error": "Payload JSON inválido"}, status_code=400)
+    
+    emails = _extract_emails_from_dict(payload)
+    if not emails:
+        return JSONResponse({"ok": False, "message": "Nenhum e-mail identificado no agendamento."}, status_code=200)
+        
+    matched_contact = None
+    with crm.get_conn() as conn:
+        for email in emails:
+            contact = crm.get_contact_by_email(email, conn=conn)
+            if contact:
+                matched_contact = contact
+                break
+                
+    if not matched_contact:
+        return JSONResponse({
+            "ok": False, 
+            "message": f"Nenhum lead correspondente encontrado para os e-mails: {list(emails)}"
+        }, status_code=200)
+        
+    contact_id = matched_contact["id"]
+    
+    # Atualiza o status do lead para 'meeting'
+    crm.update_contact_status(contact_id, "meeting", note="🤝 Reunião agendada automaticamente via integração de agenda (Webhook).")
+    crm.add_note(contact_id, f"📅 Novo agendamento detectado via Calendly/Cal.com.", author="system")
+    
+    return {
+        "ok": True,
+        "message": f"Lead '{matched_contact['nome_empresa']}' movido para Reunião.",
+        "contact_id": contact_id
+    }
+
+
 @app.get("/templates")
 def list_templates():
     return get_templates()
