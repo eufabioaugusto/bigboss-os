@@ -4176,6 +4176,46 @@ function quickUpdateStage(contactId, newStatus){
     .catch(err=>showToast({title:'Erro',message:err.message,tone:'error'}));
 }
 
+function scheduleManualMeeting(contactId) {
+  const dtVal = document.getElementById(`meet-datetime-${contactId}`).value;
+  const linkVal = document.getElementById(`meet-link-${contactId}`).value.trim();
+  
+  if(!dtVal) {
+    showToast({title: 'Data Obrigatória', message: 'Selecione a data e hora da reunião.', tone: 'info'});
+    return;
+  }
+  
+  const dateObj = new Date(dtVal);
+  const formattedDate = dateObj.toLocaleDateString('pt-BR');
+  const formattedTime = dateObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'});
+  
+  let noteText = `🤝 Reunião agendada manualmente.\n⏰ Horário: ${formattedDate} às ${formattedTime}`;
+  if(linkVal) {
+    noteText += `\n🎥 Sala Virtual: ${linkVal}`;
+  }
+  
+  fetch(`/crm/contacts/${contactId}/status`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({status: 'meeting', note: noteText})
+  })
+  .then(async r => {
+    if(!r.ok) {
+      const err = await r.json().catch(()=>({}));
+      throw new Error(err.error || 'Falha ao salvar agendamento');
+    }
+    return r.json();
+  })
+  .then(() => {
+    showToast({title: 'Reunião Agendada', message: 'Gravado com sucesso no histórico do lead!', tone: 'success'});
+    loadCRM(activeCRMTab);
+    openLeadDrawer(contactId);
+  })
+  .catch(err => {
+    showToast({title: 'Erro', message: err.message, tone: 'error'});
+  });
+}
+
 function formatReplyBody(text){
   if(!text) return '';
   const escaped = escapeHtml(text);
@@ -4382,6 +4422,26 @@ function openLeadDrawer(id){
             <option value="meeting" ${c.status==='meeting'?'selected':''}>🤝 Reunião Agendada</option>
             <option value="blocked" ${c.status==='blocked'?'selected':''}>🚫 Descartado</option>
           </select>
+        </div>
+      </div>
+
+      <!-- Agendamento de Reunião (Manual / Rápido) -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:10px;margin-top:2px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.04em;">🤝 Agendar Reunião Manual</div>
+        
+        <div style="display:grid;grid-template-columns:1.2fr 1.8fr;gap:10px;">
+          <div>
+            <label style="font-size:11.5px;color:var(--subtle);display:block;margin-bottom:3px;font-weight:600;">Data e Hora</label>
+            <input type="datetime-local" id="meet-datetime-${id}" class="input" style="font-size:12.5px;padding:6px;width:100%;">
+          </div>
+          <div>
+            <label style="font-size:11.5px;color:var(--subtle);display:block;margin-bottom:3px;font-weight:600;">Link do Meet / Zoom / Local</label>
+            <input type="text" id="meet-link-${id}" class="input" placeholder="https://meet.google.com/..." style="font-size:12.5px;padding:6px;width:100%;">
+          </div>
+        </div>
+        
+        <div style="display:flex;justify-content:flex-end;">
+          <button class="btn btn-primary" style="font-size:12px;padding:6px 16px;font-weight:700;border-radius:6px;" onclick="scheduleManualMeeting(${id})">Confirmar e Salvar Reunião</button>
         </div>
       </div>
 
