@@ -1048,7 +1048,21 @@ async def webhook_booking(req: Request):
 
 def inject_active_banner(page, text="🤖 BIGBOSS OS: DIGITAÇÃO ATIVA... NÃO FECHE ESTA ABA", color="#5851db"):
     try:
-        page.evaluate(f"""(msg, col) => {{
+        # Define um prefixo curto para a aba
+        tab_prefix = "🤖 DIGITANDO..."
+        if "CONCLUÍDA" in text or "PRONTO" in text:
+            tab_prefix = "✅ PRONTO!"
+        elif "CARREGANDO" in text:
+            tab_prefix = "⏳ CARREGANDO..."
+            
+        page.evaluate(f"""(msg, col, prefix) => {{
+            // Atualiza o título da aba do Chrome
+            if (!window.original_doc_title) {{
+                window.original_doc_title = document.title;
+            }}
+            document.title = prefix + " | " + window.original_doc_title;
+            
+            // Mantém também o banner flutuante no topo por segurança
             let banner = document.getElementById('bigboss-indicator');
             if (!banner) {{
                 banner = document.createElement('div');
@@ -1071,11 +1085,10 @@ def inject_active_banner(page, text="🤖 BIGBOSS OS: DIGITAÇÃO ATIVA... NÃO 
             banner.style.setProperty('box-shadow', '0 4px 10px rgba(0,0,0,0.3)', 'important');
             banner.innerText = msg;
             
-            // Garante que o banner continue no topo da hierarquia visual se o React reordenar
             if (document.body.lastChild !== banner) {{
                 document.body.appendChild(banner);
             }}
-        }}""", text, color)
+        }}""", text, color, tab_prefix)
     except Exception:
         pass
 
