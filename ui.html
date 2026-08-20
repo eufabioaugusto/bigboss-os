@@ -1843,6 +1843,7 @@
             <div class="field-wrap"><label class="label">Telefone de contato</label><input id="co-phone" class="input" placeholder="(11) 99999-9999"></div>
           </div>
           <div class="field-wrap"><label class="label">Website da empresa</label><input id="co-website" class="input" placeholder="https://seusite.com.br"></div>
+          <div class="field-wrap"><label class="label">Link padrão de reuniões (ex: Google Meet / Zoom / Calendly pessoal)</label><input id="co-meet-link" class="input" placeholder="https://meet.google.com/seu-link-persistente"></div>
           <div class="field-wrap"><label class="label">Descrição da empresa / O que você vende (oferta)</label><textarea id="co-description" class="textarea" rows="3" placeholder="Ex: Soluções digitais completas para captação de clientes B2B..."></textarea></div>
           <div class="field-wrap"><label class="label">Regras de copy / Tom de voz para a IA</label><textarea id="co-voice" class="textarea" rows="3" placeholder="Ex: Fale de empresário para empresário, evite termos técnicos, ofereça um diagnóstico grátis..."></textarea></div>
         </div>
@@ -3057,6 +3058,7 @@ function applySettingsForm(data){
   document.getElementById('co-email').value=c.email||'';
   document.getElementById('co-phone').value=c.phone||'';
   document.getElementById('co-website').value=c.website||'';
+  document.getElementById('co-meet-link').value=c.meeting_link||'';
   document.getElementById('co-description').value=c.description||'';
   document.getElementById('co-voice').value=c.voice_rules||'';
   document.getElementById('sender-name').value=s.name||'';
@@ -3099,6 +3101,7 @@ function gatherSettingsForm(){
       email:co('co-email'),
       phone:co('co-phone'),
       website:co('co-website'),
+      meeting_link:co('co-meet-link'),
       description:co('co-description'),
       voice_rules:co('co-voice')
     },
@@ -4189,10 +4192,21 @@ function scheduleManualMeeting(contactId) {
   const formattedDate = dateObj.toLocaleDateString('pt-BR');
   const formattedTime = dateObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'});
   
-  let noteText = `🤝 Reunião agendada manualmente.\n⏰ Horário: ${formattedDate} às ${formattedTime}`;
-  if(linkVal) {
-    noteText += `\n🎥 Sala Virtual: ${linkVal}`;
+  let finalLink = linkVal;
+  if(!finalLink) {
+    const companySettings = appSettings.company || {};
+    if(companySettings.meeting_link) {
+      finalLink = companySettings.meeting_link;
+    } else {
+      const companyName = document.getElementById('dr-company-name')?.textContent || 'Prospect';
+      const cleanName = companyName.replace(/[^a-zA-Z0-9]/g, '');
+      const rand = Math.floor(1000 + Math.random() * 9000);
+      finalLink = `https://meet.jit.si/BigBoss-Reuniao-${cleanName}-${rand}`;
+    }
   }
+  
+  let noteText = `🤝 Reunião agendada manualmente.\n⏰ Horário: ${formattedDate} às ${formattedTime}`;
+  noteText += `\n🎥 Sala Virtual: ${finalLink}`;
   
   fetch(`/crm/contacts/${contactId}/status`, {
     method: 'POST',
