@@ -1316,6 +1316,251 @@ async def crm_outreach_instagram_auto(contact_id: int, bg: BackgroundTasks):
     return {"ok": True, "message": "Automação iniciada."}
 
 
+def get_instagram_queue() -> list:
+    import crm
+    crm.init_db()
+    with crm.get_conn() as conn:
+        rows = conn.execute(
+            """
+            SELECT c.*
+            FROM crm_contacts c
+            WHERE (c.instagram IS NOT NULL AND c.instagram != '')
+              AND (c.dm_instagram IS NOT NULL AND c.dm_instagram != '')
+              AND (c.status = 'ready')
+            ORDER BY c.updated_at DESC
+            LIMIT 50
+            """
+        ).fetchall()
+    
+    queue = []
+    for r in rows:
+        c = dict(r)
+        handle = c.get("instagram", "").strip()
+        if handle.startswith("@"):
+            handle = handle[1:]
+        
+        insta_link = f"https://www.instagram.com/{handle}/" if "instagram.com" not in handle else handle
+        
+        queue.append({
+            "id": c["id"],
+            "company_name": c.get("nome_empresa") or "Empresa",
+            "instagram": c.get("instagram"),
+            "insta_link": insta_link,
+            "script": c.get("dm_instagram"),
+            "status": c.get("status")
+        })
+    return queue
+
+
+def run_instagram_batch_automation_bg(contact_ids: list):
+    import time
+    import random
+    from playwright.sync_api import sync_playwright
+    import crm
+    import os
+    
+    try:
+        with sync_playwright() as p:
+            profile_dir = "/Users/fabio/AGENTES/email-prospection/data/playwright_profile"
+            os.makedirs(profile_dir, exist_ok=True)
+            
+            browser = p.chromium.launch_persistent_context(
+                user_data_dir=profile_dir,
+                headless=False,
+                args=["--start-maximized", "--no-sandbox"]
+            )
+            page = browser.pages[0] if browser.pages else browser.new_page()
+            
+            for idx, contact_id in enumerate(contact_ids):
+                contact = crm.get_contact_full(contact_id)
+                if not contact:
+                    continue
+                
+                insta_url = contact.get("instagram", "").strip()
+                if not insta_url:
+                    continue
+                if not insta_url.startswith("http"):
+                    handle = insta_url[1:] if insta_url.startswith("@") else insta_url
+                    insta_url = f"https://www.instagram.com/{handle}/"
+                    
+                message = contact.get("dm_instagram")
+                if not message:
+                    continue
+                
+                print(f"[automação-lote] Processando lead {contact_id}: {insta_url}")
+                page.goto(insta_url)
+                page.wait_for_load_state("networkidle")
+                time.sleep(3)
+                
+                inject_active_banner(page, f"🤖 BIGBOSS OS ({idx+1}/{len(contact_ids)}): CARREGANDO PERFIL...")
+                
+                # Verifica login
+                is_login = False
+                try:
+                    if "accounts/login" in page.url or page.locator("input[name='username']").count() > 0:
+                        is_login = True
+                except Exception:
+                    pass
+                    
+                if is_login:
+                    crm.add_note(contact_id, "⚠️ Robô de lote travado: Você não está logado nesta janela do Chrome. Faça login para continuar.", author="system")
+                    # Espera login por até 120s
+                    logged_in = False
+                    for _ in range(120):
+                        time.sleep(1)
+                        try:
+                            if "accounts/login" not in page.url and page.locator("input[name='username']").count() == 0:
+                                logged_in = True
+                                break
+                        except Exception:
+                            pass
+                    if logged_in:
+                        page.goto(insta_url)
+                        page.wait_for_load_state("networkidle")
+                        time.sleep(3)
+                    else:
+                        print("[automação-lote] Login não realizado. Abortando lote.")
+                        break
+                
+                inject_active_banner(page, f"🤖 BIGBOSS OS ({idx+1}/{len(contact_ids)}): PROCURANDO BOTÃO MENSAGEM...")
+                
+                # Descarta popups
+                for btn_text in ["Agora não", "Not now", "cancelar", "cancel"]:
+                    try:
+                        locator = page.get_by_role("button", name=btn_text).first
+                        if locator.is_visible(timeout=1000):
+                            locator.click()
+                            time.sleep(1)
+                    except Exception:
+                        pass
+                
+                # Acha o botão Mensagem
+                msg_btn = None
+                selectors_to_try = [
+                    "//div[text()='Enviar mensagem']",
+                    "//div[text()='Message']",
+                    "//button[contains(., 'Enviar mensagem')]",
+                    "//button[contains(., 'Message')]",
+                    "a[href*='/direct/t/']",
+                    "role=button[name='Enviar mensagem']",
+                    "role=button[name='Message']"
+                ]
+                for selector in selectors_to_try:
+                    try:
+                        locator = page.locator(selector).first
+                        if locator.is_visible(timeout=2000):
+                            msg_btn = locator
+                            break
+                    except Exception:
+                        continue
+                        
+                clicked = False
+                if msg_btn:
+                    try:
+                        msg_btn.click()
+                        clicked = True
+                    except Exception:
+                        pass
+                
+                # Espera textbox
+                textbox_visible = False
+                for _ in range(30):
+                    inject_active_banner(page, f"🤖 BIGBOSS OS ({idx+1}/{len(contact_ids)}): ABRINDO CHAT...")
+                    time.sleep(0.5)
+                    try:
+                        if "direct/t" in page.url:
+                            textbox_visible = True
+                            break
+                        for selector in ["div[role='textbox']", "div[contenteditable='true']", "textarea"]:
+                            if page.locator(selector).first.is_visible():
+                                textbox_visible = True
+                                break
+                        if textbox_visible:
+                            break
+                    except Exception:
+                        pass
+                
+                if not textbox_visible:
+                    crm.add_note(contact_id, "❌ Falha no lote: Não foi possível abrir o chat do direct do lead.", author="system")
+                    continue
+                    
+                time.sleep(2)
+                inject_active_banner(page, f"🤖 BIGBOSS OS ({idx+1}/{len(contact_ids)}): DIGITANDO MENSAGEM...")
+                
+                textbox = None
+                textbox_selectors = [
+                    "div[role='textbox']",
+                    "div[contenteditable='true']",
+                    "textarea[placeholder*='Mensagem']",
+                    "textarea[placeholder*='Message']"
+                ]
+                for selector in textbox_selectors:
+                    try:
+                        locator = page.locator(selector).first
+                        if locator.is_visible(timeout=2000):
+                            textbox = locator
+                            break
+                    except Exception:
+                        continue
+                        
+                if textbox:
+                    textbox.click()
+                    time.sleep(1)
+                    for char in message:
+                        if char == '\n':
+                            # Shift+Enter para formatar o parágrafo
+                            page.keyboard.down("Shift")
+                            page.keyboard.press("Enter")
+                            page.keyboard.up("Shift")
+                        else:
+                            textbox.type(char)
+                        
+                        if random.random() < 0.08:
+                            inject_active_banner(page, f"🤖 BIGBOSS OS ({idx+1}/{len(contact_ids)}): DIGITANDO...")
+                        time.sleep(random.uniform(0.04, 0.12))
+                    
+                    time.sleep(1.5)
+                    inject_active_banner(page, f"🚀 BIGBOSS OS ({idx+1}/{len(contact_ids)}): DISPARANDO ENVIO...")
+                    
+                    # DISPARA o envio pressionando Enter (sem Shift!)
+                    page.keyboard.press("Enter")
+                    
+                    # Registra sucesso
+                    crm.update_contact_status(contact_id, "sent_1x")
+                    crm.add_note(contact_id, "🤖 Mensagem de direct enviada automaticamente pelo robô do BigBoss OS (Fila em Lote).", author="system")
+                    
+                    inject_active_banner(page, f"✅ LEAD {idx+1}/{len(contact_ids)} ENVIADO COM SUCESSO!", "#16a34a")
+                    
+                    # Espera tempo aleatório entre leads (ex: 8 a 15 segundos)
+                    wait_time = random.uniform(8.0, 15.0)
+                    print(f"[automação-lote] Sucesso. Aguardando {wait_time:.1f}s antes do próximo lead...")
+                    time.sleep(wait_time)
+                else:
+                    crm.add_note(contact_id, "❌ Falha no lote: Caixa de texto não encontrada.", author="system")
+            
+            # Fecha o navegador ao terminar todos os envios
+            browser.close()
+            print("[automação-lote] Lote concluído!")
+            
+    except Exception as exc:
+        print(f"[automação-lote] Erro crítico no processamento em lote: {exc}")
+
+
+@app.get("/crm/instagram-queue")
+def crm_instagram_queue():
+    return {"queue": get_instagram_queue()}
+
+
+@app.post("/crm/contacts/outreach-instagram-batch")
+async def crm_outreach_instagram_batch(req: Request, bg: BackgroundTasks):
+    body = await req.json()
+    contact_ids = body.get("contact_ids", [])
+    if not contact_ids:
+        return JSONResponse({"error": "Nenhum ID de contato enviado"}, status_code=400)
+    bg.add_task(run_instagram_batch_automation_bg, contact_ids)
+    return {"ok": True, "message": f"Automação em lote iniciada para {len(contact_ids)} contatos."}
+
+
 @app.get("/templates")
 def list_templates():
     return get_templates()
