@@ -1062,6 +1062,23 @@ def run_instagram_automation_bg(contact_id: int, insta_url: str, message: str):
             page.wait_for_load_state("networkidle")
             time.sleep(3)
             
+            # Detecta se caiu na tela de login
+            if "accounts/login" in page.url or page.locator("input[name='username']").count() > 0:
+                print("[automação] Usuário não logado no Instagram. Aguardando login manual...")
+                crm.add_note(contact_id, "⚠️ O robô abriu o Instagram, mas detectou que você não está logado neste perfil de navegador. Por favor, faça login nesta janela nova para a IA prosseguir.", author="system")
+                try:
+                    # Espera a URL conter o perfil do usuário ou não ser mais a tela de login por até 120s
+                    for _ in range(120):
+                        time.sleep(1)
+                        if "accounts/login" not in page.url and page.locator("input[name='username']").count() == 0:
+                            break
+                    page.goto(insta_url)
+                    page.wait_for_load_state("networkidle")
+                    time.sleep(3)
+                except Exception:
+                    print("[automação] Tempo esgotado esperando o login.")
+                    return
+            
             msg_btn = None
             selectors_to_try = [
                 "//div[text()='Enviar mensagem']",
@@ -1151,15 +1168,27 @@ async def crm_outreach_instagram_auto(contact_id: int, bg: BackgroundTasks):
         s.close()
         
     if not chrome_open:
-        # Se não estiver aberta, tenta forçar a abertura do Chrome no Mac com a porta ativa
         try:
-            subprocess.run(["killall", "Google Chrome"], capture_output=True)
-            time.sleep(1)
+            profile_dir = "/Users/fabio/.gemini/antigravity/brain/0509120b-a4d2-4a8a-a3cc-110ff72d6262/scratch/chrome_profile"
             subprocess.Popen([
-                "open", "-a", "Google Chrome", "--args", "--remote-debugging-port=9222"
+                "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+                "--remote-debugging-port=9222",
+                f"--user-data-dir={profile_dir}"
             ])
-            # Tempo curto de carregamento do binário
-            time.sleep(3)
+            # Espera até 6 segundos para a porta responder
+            for _ in range(12):
+                time.sleep(0.5)
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.settimeout(0.5)
+                try:
+                    s.connect(("127.0.0.1", 9222))
+                    s.close()
+                    chrome_open = True
+                    break
+                except Exception:
+                    pass
+            if not chrome_open:
+                return JSONResponse({"error": "Chrome demorou muito para responder na porta 9222."}, status_code=500)
         except Exception as exc:
             return JSONResponse({"error": f"Não foi possível iniciar o Chrome: {str(exc)}"}, status_code=500)
             
