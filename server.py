@@ -1046,6 +1046,34 @@ async def webhook_booking(req: Request):
     }
 
 
+def inject_active_banner(page, text="🤖 BIGBOSS OS: DIGITAÇÃO ATIVA... NÃO FECHE ESTA ABA", color="#5851db"):
+    try:
+        page.evaluate(f"""(msg, col) => {{
+            let banner = document.getElementById('bigboss-indicator');
+            if (!banner) {{
+                banner = document.createElement('div');
+                banner.id = 'bigboss-indicator';
+                document.body.appendChild(banner);
+            }}
+            banner.style.position = 'fixed';
+            banner.style.top = '0';
+            banner.style.left = '0';
+            banner.style.width = '100%';
+            banner.style.backgroundColor = col;
+            banner.style.color = 'white';
+            banner.style.textAlign = 'center';
+            banner.style.padding = '12px';
+            banner.style.fontWeight = 'bold';
+            banner.style.zIndex = '999999999';
+            banner.style.fontSize = '15px';
+            banner.style.fontFamily = 'sans-serif';
+            banner.style.boxShadow = '0 4px 10px rgba(0,0,0,0.2)';
+            banner.innerText = msg;
+        }}""", text, color)
+    except Exception:
+        pass
+
+
 def run_instagram_automation_bg(contact_id: int, insta_url: str, message: str):
     import time
     import random
@@ -1056,18 +1084,21 @@ def run_instagram_automation_bg(contact_id: int, insta_url: str, message: str):
         with sync_playwright() as p:
             browser = p.chromium.connect_over_cdp("http://localhost:9222")
             context = browser.contexts[0]
+            # Abre como nova aba no mesmo navegador
             page = context.new_page()
             
             page.goto(insta_url)
             page.wait_for_load_state("networkidle")
             time.sleep(3)
             
+            # Sinalizador visual na página
+            inject_active_banner(page, "🤖 BIGBOSS OS: CARREGANDO PERFIL E POPUPS...")
+            
             # Detecta se caiu na tela de login
             if "accounts/login" in page.url or page.locator("input[name='username']").count() > 0:
                 print("[automação] Usuário não logado no Instagram. Aguardando login manual...")
                 crm.add_note(contact_id, "⚠️ O robô abriu o Instagram, mas detectou que você não está logado neste perfil de navegador. Por favor, faça login nesta janela nova para a IA prosseguir.", author="system")
                 try:
-                    # Espera a URL conter o perfil do usuário ou não ser mais a tela de login por até 120s
                     for _ in range(120):
                         time.sleep(1)
                         if "accounts/login" not in page.url and page.locator("input[name='username']").count() == 0:
@@ -1079,7 +1110,8 @@ def run_instagram_automation_bg(contact_id: int, insta_url: str, message: str):
                     print("[automação] Tempo esgotado esperando o login.")
                     return
             
-            # Descarta popups de 'Salvar login' ou 'Notificações' se aparecerem na tela
+            inject_active_banner(page, "🤖 BIGBOSS OS: DIGITAÇÃO ATIVA... NÃO FECHE ESTA ABA")
+            
             for btn_text in ["Agora não", "Not now", "cancelar", "cancel"]:
                 try:
                     locator = page.get_by_role("button", name=btn_text).first
@@ -1118,10 +1150,10 @@ def run_instagram_automation_bg(contact_id: int, insta_url: str, message: str):
                     print("[automação] Falha ao clicar no botão de Mensagem. Aguardando clique manual...")
                     
             if not clicked:
-                # Se falhar o clique automático (ex: por popup na frente), espera o usuário clicar
                 page.wait_for_url("**/direct/t/**", timeout=30000)
                 
             time.sleep(4)
+            inject_active_banner(page, "🤖 BIGBOSS OS: DIGITAÇÃO ATIVA... NÃO FECHE ESTA ABA")
             
             textbox = None
             textbox_selectors = [
@@ -1147,13 +1179,15 @@ def run_instagram_automation_bg(contact_id: int, insta_url: str, message: str):
                     time.sleep(random.uniform(0.04, 0.12))
                     
                 crm.add_note(contact_id, "🤖 Mensagem de direct digitada automaticamente via robô BigBoss OS.", author="system")
-                # Mantém a aba e a conexão abertas por 5 minutos para o usuário revisar e apertar Enter
+                
+                # Altera o banner para verde de sucesso!
+                inject_active_banner(page, "✅ DIGITAÇÃO CONCLUÍDA! REVISE E ENVIE NO ENTER.", "#22c55e")
+                
                 time.sleep(300)
                 
     except Exception as exc:
         print(f"[automação] erro no direct do instagram: {exc}")
         crm.add_note(contact_id, f"❌ Erro na digitação automática do Instagram: {str(exc)}", author="system")
-        # Mantém a aba aberta por 3 minutos mesmo em caso de erro para o usuário não perder o contexto
         time.sleep(180)
 
 
@@ -1191,29 +1225,14 @@ async def crm_outreach_instagram_auto(contact_id: int, bg: BackgroundTasks):
         
     if not chrome_open:
         try:
-            import os
-            profile_dir = "/Users/fabio/.gemini/antigravity/brain/0509120b-a4d2-4a8a-a3cc-110ff72d6262/scratch/chrome_profile"
-            os.makedirs(profile_dir, exist_ok=True)
-            
-            # Remove a trava de Singleton do Chrome se ela tiver ficado presa por crash anterior
-            lock_file = os.path.join(profile_dir, "SingletonLock")
-            if os.path.islink(lock_file) or os.path.exists(lock_file):
-                try:
-                    os.unlink(lock_file)
-                except Exception:
-                    try:
-                        os.remove(lock_file)
-                    except Exception:
-                        pass
-            
+            # Tenta abrir o Chrome normal do usuário com a porta ativa
             subprocess.Popen([
-                "open", "-n", "-a", "Google Chrome",
+                "open", "-a", "Google Chrome",
                 "--args",
-                "--remote-debugging-port=9222",
-                f"--user-data-dir={profile_dir}"
+                "--remote-debugging-port=9222"
             ])
-            # Espera até 6 segundos para a porta responder
-            for _ in range(12):
+            # Espera até 4 segundos para a porta responder
+            for _ in range(8):
                 time.sleep(0.5)
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.settimeout(0.5)
@@ -1225,7 +1244,9 @@ async def crm_outreach_instagram_auto(contact_id: int, bg: BackgroundTasks):
                 except Exception:
                     pass
             if not chrome_open:
-                return JSONResponse({"error": "Chrome demorou muito para responder na porta 9222."}, status_code=500)
+                return JSONResponse({
+                    "error": "Por favor, feche totalmente o seu Chrome (Cmd+Q) e clique no botão novamente. O robô precisa reabrir o Chrome para ativar o suporte à automação."
+                }, status_code=500)
         except Exception as exc:
             return JSONResponse({"error": f"Não foi possível iniciar o Chrome: {str(exc)}"}, status_code=500)
             
