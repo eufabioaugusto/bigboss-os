@@ -1079,13 +1079,21 @@ def run_instagram_automation_bg(contact_id: int, insta_url: str, message: str):
     import random
     from playwright.sync_api import sync_playwright
     import crm
+    import os
     
     try:
         with sync_playwright() as p:
-            browser = p.chromium.connect_over_cdp("http://localhost:9222")
-            context = browser.contexts[0]
-            # Abre como nova aba no mesmo navegador
-            page = context.new_page()
+            # Diretório persistente para salvar os dados de login na pasta do projeto
+            profile_dir = "/Users/fabio/AGENTES/email-prospection/data/playwright_profile"
+            os.makedirs(profile_dir, exist_ok=True)
+            
+            # Lança o navegador nativamente com o perfil persistente (salva login)
+            browser = p.chromium.launch_persistent_context(
+                user_data_dir=profile_dir,
+                headless=False,
+                args=["--start-maximized", "--no-sandbox"]
+            )
+            page = browser.pages[0] if browser.pages else browser.new_page()
             
             page.goto(insta_url)
             page.wait_for_load_state("networkidle")
@@ -1097,8 +1105,9 @@ def run_instagram_automation_bg(contact_id: int, insta_url: str, message: str):
             # Detecta se caiu na tela de login
             if "accounts/login" in page.url or page.locator("input[name='username']").count() > 0:
                 print("[automação] Usuário não logado no Instagram. Aguardando login manual...")
-                crm.add_note(contact_id, "⚠️ O robô abriu o Instagram, mas detectou que você não está logado neste perfil de navegador. Por favor, faça login nesta janela nova para a IA prosseguir.", author="system")
+                crm.add_note(contact_id, "⚠️ O robô abriu o Instagram, mas detectou que você não está logado neste perfil de navegador. Por favor, faça login nesta janela nova (só uma vez) para a IA prosseguir.", author="system")
                 try:
+                    # Espera o login ser efetuado por até 120s
                     for _ in range(120):
                         time.sleep(1)
                         if "accounts/login" not in page.url and page.locator("input[name='username']").count() == 0:
@@ -1112,6 +1121,7 @@ def run_instagram_automation_bg(contact_id: int, insta_url: str, message: str):
             
             inject_active_banner(page, "🤖 BIGBOSS OS: DIGITAÇÃO ATIVA... NÃO FECHE ESTA ABA")
             
+            # Descarta popups
             for btn_text in ["Agora não", "Not now", "cancelar", "cancel"]:
                 try:
                     locator = page.get_by_role("button", name=btn_text).first
@@ -1150,6 +1160,7 @@ def run_instagram_automation_bg(contact_id: int, insta_url: str, message: str):
                     print("[automação] Falha ao clicar no botão de Mensagem. Aguardando clique manual...")
                     
             if not clicked:
+                # Se falhar o clique automático, espera o usuário clicar
                 page.wait_for_url("**/direct/t/**", timeout=30000)
                 
             time.sleep(4)
@@ -1183,20 +1194,19 @@ def run_instagram_automation_bg(contact_id: int, insta_url: str, message: str):
                 # Altera o banner para verde de sucesso!
                 inject_active_banner(page, "✅ DIGITAÇÃO CONCLUÍDA! REVISE E ENVIE NO ENTER.", "#22c55e")
                 
+                # Mantém a aba e a conexão abertas por 5 minutos para o usuário revisar e apertar Enter
                 time.sleep(300)
                 
     except Exception as exc:
         print(f"[automação] erro no direct do instagram: {exc}")
         crm.add_note(contact_id, f"❌ Erro na digitação automática do Instagram: {str(exc)}", author="system")
+        # Mantém a aba aberta por 3 minutos mesmo em caso de erro
         time.sleep(180)
 
 
 @app.post("/crm/contacts/{contact_id}/outreach-instagram-auto")
 async def crm_outreach_instagram_auto(contact_id: int, bg: BackgroundTasks):
     import crm
-    import subprocess
-    import socket
-    import time
     
     crm.init_db()
     contact = crm.get_contact_full(contact_id)
@@ -1211,47 +1221,8 @@ async def crm_outreach_instagram_auto(contact_id: int, bg: BackgroundTasks):
     if not message:
         return JSONResponse({"error": "Roteiro de DM do Instagram não gerado para este lead"}, status_code=400)
         
-    # Verifica se a porta de depuração 9222 do Chrome está ativa
-    chrome_open = False
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.settimeout(1)
-    try:
-        s.connect(("127.0.0.1", 9222))
-        chrome_open = True
-    except Exception:
-        pass
-    finally:
-        s.close()
-        
-    if not chrome_open:
-        try:
-            # Tenta abrir o Chrome normal do usuário com a porta ativa
-            subprocess.Popen([
-                "open", "-a", "Google Chrome",
-                "--args",
-                "--remote-debugging-port=9222"
-            ])
-            # Espera até 15 segundos para a porta responder (importante para quem tem muitas abas abertas)
-            for _ in range(30):
-                time.sleep(0.5)
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.settimeout(0.5)
-                try:
-                    s.connect(("127.0.0.1", 9222))
-                    s.close()
-                    chrome_open = True
-                    break
-                except Exception:
-                    pass
-            if not chrome_open:
-                return JSONResponse({
-                    "error": "Por favor, feche totalmente o seu Chrome (Cmd+Q) e clique no botão novamente. O robô precisa reabrir o Chrome para ativar o suporte à automação."
-                }, status_code=500)
-        except Exception as exc:
-            return JSONResponse({"error": f"Não foi possível iniciar o Chrome: {str(exc)}"}, status_code=500)
-            
     bg.add_task(run_instagram_automation_bg, contact_id, insta_url, message)
-    return {"ok": True, "message": "Automação de digitação iniciada no Chrome."}
+    return {"ok": True, "message": "Automação iniciada."}
 
 
 @app.get("/templates")
