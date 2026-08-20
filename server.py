@@ -1326,7 +1326,7 @@ def get_instagram_queue() -> list:
             FROM crm_contacts c
             WHERE (c.instagram IS NOT NULL AND c.instagram != '')
               AND (c.dm_instagram IS NOT NULL AND c.dm_instagram != '')
-              AND (c.status = 'ready')
+              AND (c.status IN ('new', 'ready'))
             ORDER BY c.updated_at DESC
             LIMIT 50
             """
