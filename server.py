@@ -1079,6 +1079,16 @@ def run_instagram_automation_bg(contact_id: int, insta_url: str, message: str):
                     print("[automação] Tempo esgotado esperando o login.")
                     return
             
+            # Descarta popups de 'Salvar login' ou 'Notificações' se aparecerem na tela
+            for btn_text in ["Agora não", "Not now", "cancelar", "cancel"]:
+                try:
+                    locator = page.get_by_role("button", name=btn_text).first
+                    if locator.is_visible(timeout=1000):
+                        locator.click()
+                        time.sleep(1)
+                except Exception:
+                    pass
+
             msg_btn = None
             selectors_to_try = [
                 "//div[text()='Enviar mensagem']",
@@ -1098,11 +1108,18 @@ def run_instagram_automation_bg(contact_id: int, insta_url: str, message: str):
                 except Exception:
                     continue
                     
+            clicked = False
             if msg_btn:
-                msg_btn.click()
-                page.wait_for_url("**/direct/t/**", timeout=15000)
-            else:
-                page.wait_for_url("**/direct/t/**", timeout=20000)
+                try:
+                    msg_btn.click()
+                    page.wait_for_url("**/direct/t/**", timeout=10000)
+                    clicked = True
+                except Exception:
+                    print("[automação] Falha ao clicar no botão de Mensagem. Aguardando clique manual...")
+                    
+            if not clicked:
+                # Se falhar o clique automático (ex: por popup na frente), espera o usuário clicar
+                page.wait_for_url("**/direct/t/**", timeout=30000)
                 
             time.sleep(4)
             
@@ -1135,6 +1152,9 @@ def run_instagram_automation_bg(contact_id: int, insta_url: str, message: str):
                 
     except Exception as exc:
         print(f"[automação] erro no direct do instagram: {exc}")
+        crm.add_note(contact_id, f"❌ Erro na digitação automática do Instagram: {str(exc)}", author="system")
+        # Mantém a aba aberta por 3 minutos mesmo em caso de erro para o usuário não perder o contexto
+        time.sleep(180)
 
 
 @app.post("/crm/contacts/{contact_id}/outreach-instagram-auto")
