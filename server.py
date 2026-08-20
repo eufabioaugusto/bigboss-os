@@ -13,6 +13,7 @@ from fastapi import FastAPI, BackgroundTasks, Request
 from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
+import crm
 
 from settings_store import get_company, get_runtime_config, get_settings, init_db as init_settings_db, save_settings
 from tasks_store import (
@@ -663,13 +664,15 @@ def _is_valid_lead(lead: dict) -> bool:
     )
 
 
-def run_pipeline_bg(prompt: str, source: str = "google", template_id: str = None, auto_send: bool = False, max_leads_per_run: int = None):
+def run_pipeline_bg(prompt: str, source: str = "google", template_id: str = None, auto_send: bool = False, max_leads_per_run: int = None, campaign_id: str = None):
     config = load_config()
     config["source"] = source
     if template_id:
         config["template_id"] = template_id
     if auto_send:
         config["mode"] = "auto"
+    if campaign_id:
+        config["campaign_id"] = campaign_id
     if max_leads_per_run:
         config.setdefault("limits", {})
         config["limits"]["max_leads_per_run"] = max_leads_per_run
@@ -692,6 +695,7 @@ async def prospect(req: Request, bg: BackgroundTasks):
     template_id = body.get("template_id")
     auto_send = bool(body.get("auto_send"))
     max_leads_per_run = body.get("max_leads_per_run")
+    campaign_id = body.get("campaign_id")
     if max_leads_per_run is not None:
         try:
             max_leads_per_run = int(max_leads_per_run)
@@ -702,7 +706,7 @@ async def prospect(req: Request, bg: BackgroundTasks):
         return JSONResponse({"error": "Prompt vazio"}, status_code=400)
     if state["status"] == "running":
         return JSONResponse({"error": "Já rodando"}, status_code=409)
-    bg.add_task(run_pipeline_bg, prompt, source, template_id, auto_send, max_leads_per_run)
+    bg.add_task(run_pipeline_bg, prompt, source, template_id, auto_send, max_leads_per_run, campaign_id)
     return {"ok": True}
 
 

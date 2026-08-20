@@ -1727,6 +1727,13 @@
                   <option value="50">50 Leads (Volume)</option>
                 </select>
               </div>
+
+              <div class="field-wrap">
+                <label class="label" style="font-weight:600;font-size:12px;margin-bottom:2px;">7. Campanha Comercial</label>
+                <select id="prospect-campaign-id" class="select">
+                  <option value="">(Nenhuma) Perfil Geral da Empresa</option>
+                </select>
+              </div>
             </div>
 
             <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:18px;margin-top:8px;gap:16px;flex-wrap:wrap;">
@@ -2996,20 +3003,21 @@ function deleteCampaign(id){
 }
 
 function populateCampaignsDropdowns(){
-  const select = document.getElementById('task-campaign-id');
-  if(select){
-    const val = select.value;
-    select.innerHTML = '<option value="">(Nenhuma) Perfil Geral da Empresa</option>';
-    campaignsList.forEach(c => {
-      if(c.is_active){
+  const ids = ['task-campaign-id', 'prospect-campaign-id'];
+  ids.forEach(id => {
+    const select = document.getElementById(id);
+    if(select){
+      const val = select.value;
+      select.innerHTML = '<option value="">(Nenhuma) Perfil Geral da Empresa</option>';
+      campaignsList.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c.id;
         opt.textContent = c.name;
         select.appendChild(opt);
-      }
-    });
-    select.value = val;
-  }
+      });
+      select.value = val;
+    }
+  });
 }
 
 function updateSidebarSummary(){
@@ -3309,12 +3317,13 @@ function startPipeline(){
   showView('prospeccao');
   _setRunning(true,'Iniciando fluxo...');
   _pldStartCycle();
+  const campaignId = document.getElementById('prospect-campaign-id')?.value || null;
   const createRoutine=shouldRepeat
-    ? fetch('/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:`${sourceLabel(activeSource)} · ${prompt.slice(0,42)}`,source:activeSource,prompt,interval_minutes:interval,max_leads_per_run:leadsCount,min_score_to_send:Number((appSettings.scoring||{}).min_score_to_send||7),results_per_query:Number((appSettings.search||{}).results_per_query||10),max_emails_per_day:Number((appSettings.limits||{}).max_emails_per_day||50),delay_between_sends_seconds:Number((appSettings.limits||{}).delay_between_sends_seconds||30),auto_send:autoSend,status:'active',task_type:'full_cycle',template_id:document.getElementById('prospect-template-id').value||null})})
+    ? fetch('/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:`${sourceLabel(activeSource)} · ${prompt.slice(0,42)}`,source:activeSource,prompt,interval_minutes:interval,max_leads_per_run:leadsCount,min_score_to_send:Number((appSettings.scoring||{}).min_score_to_send||7),results_per_query:Number((appSettings.search||{}).results_per_query||10),max_emails_per_day:Number((appSettings.limits||{}).max_emails_per_day||50),delay_between_sends_seconds:Number((appSettings.limits||{}).delay_between_sends_seconds||30),auto_send:autoSend,status:'active',task_type:'full_cycle',template_id:document.getElementById('prospect-template-id').value||null,campaign_id:campaignId})})
         .then(async r=>{const data=await parseResponsePayload(r);if(!r.ok)throw new Error(data.error||'Falha ao criar rotina');return data;})
     : Promise.resolve(null);
   createRoutine
-    .then(task=>{if(task)appendLog(`Rotina automática criada: ${task.name}`);return fetch('/prospect',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,source:activeSource,template_id:document.getElementById('prospect-template-id').value||null,auto_send:autoSend,max_leads_per_run:leadsCount})});})
+    .then(task=>{if(task)appendLog(`Rotina automática criada: ${task.name}`);return fetch('/prospect',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,source:activeSource,template_id:document.getElementById('prospect-template-id').value||null,auto_send:autoSend,max_leads_per_run:leadsCount,campaign_id:campaignId})});})
     .then(async response=>{
       if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.error||'Falha ao iniciar');}
       startSSE();
