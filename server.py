@@ -951,6 +951,39 @@ def _extract_emails_from_dict(val, found_emails=None) -> set[str]:
     return found_emails
 
 
+def _extract_meeting_details(val, result=None) -> dict:
+    import re
+    if result is None:
+        result = {"link": None, "time": None}
+        
+    meet_regex = re.compile(r"https?://(?:meet\.google\.com/[a-z]{3}-[a-z]{4}-[a-z]{3}|zoom\.us/j/\d+|cal\.com/meet/[^\"\s]+|calendly\.com/events/[^\"\s]+)")
+    date_regex = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}")
+    
+    if isinstance(val, dict):
+        for k in ["location", "join_url", "meet_link", "video_url"]:
+            if k in val and isinstance(val[k], str) and val[k].startswith("http"):
+                result["link"] = val[k]
+        for k in ["start_time", "startTime", "date"]:
+            if k in val and isinstance(val[k], str) and date_regex.search(val[k]):
+                result["time"] = val[k]
+                
+        for k, v in val.items():
+            _extract_meeting_details(v, result)
+            
+    elif isinstance(val, list):
+        for item in val:
+            _extract_meeting_details(item, result)
+            
+    elif isinstance(val, str):
+        if not result["link"] and meet_regex.search(val):
+            m = meet_regex.search(val)
+            result["link"] = m.group(0)
+        if not result["time"] and date_regex.match(val):
+            result["time"] = val
+            
+    return result
+
+
 @app.post("/webhooks/booking")
 async def webhook_booking(req: Request):
     import crm
@@ -981,9 +1014,28 @@ async def webhook_booking(req: Request):
         
     contact_id = matched_contact["id"]
     
-    # Atualiza o status do lead para 'meeting'
-    crm.update_contact_status(contact_id, "meeting", note="🤝 Reunião agendada automaticamente via integração de agenda (Webhook).")
-    crm.add_note(contact_id, f"📅 Novo agendamento detectado via Calendly/Cal.com.", author="system")
+    # Extrai detalhes da reunião
+    details = _extract_meeting_details(payload)
+    meet_link = details.get("link")
+    meet_time = details.get("time")
+    
+    note_lines = ["📅 Novo agendamento detectado via Calendly/Cal.com."]
+    if meet_time:
+        try:
+            dt_str = meet_time.replace("Z", "+00:00")
+            dt = datetime.fromisoformat(dt_str)
+            formatted_time = dt.strftime("%d/%m/%Y às %H:%M")
+            note_lines.append(f"⏰ Horário: {formatted_time}")
+        except Exception:
+            note_lines.append(f"⏰ Horário: {meet_time}")
+    if meet_link:
+        note_lines.append(f"🎥 Sala Virtual: {meet_link}")
+        
+    full_note = "\n".join(note_lines)
+    
+    # Atualiza o status do lead para 'meeting' e registra nota formatada
+    crm.update_contact_status(contact_id, "meeting", note=full_note)
+    crm.add_note(contact_id, full_note, author="system")
     
     return {
         "ok": True,

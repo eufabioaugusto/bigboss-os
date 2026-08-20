@@ -2734,6 +2734,11 @@ function showView(name){
 function initIcons(){try{if(window.lucide&&typeof window.lucide.createIcons==='function')window.lucide.createIcons();}catch(err){console.warn('Lucide icon error',err);}}
 function toMap(list){const r={};list.forEach(item=>r[item.id]=item);return r;}
 function escapeHtml(v){return String(v||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');}
+function formatNoteContent(text) {
+  const escaped = escapeHtml(text);
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  return escaped.replace(urlRegex, url => `<a href="${url}" target="_blank" style="color:#2563eb;text-decoration:underline;font-weight:600;">${url}</a>`);
+}
 async function parseResponsePayload(response){const raw=await response.text();try{return raw?JSON.parse(raw):{};}catch(_){return{error:raw||`HTTP ${response.status}`};}}
 function showToast({title,message='',tone='info',timeout=3200}){const stack=document.getElementById('toast-stack');if(!stack)return;const icons={success:'✓',error:'!',info:'i'};const toast=document.createElement('div');toast.className=`toast toast-${tone}`;toast.innerHTML=`<div class="toast-icon">${icons[tone]||icons.info}</div><div style="min-width:0;flex:1;"><div class="toast-title">${escapeHtml(title||'Aviso')}</div>${message?`<div class="toast-message">${escapeHtml(message)}</div>`:''}</div><button class="toast-close" type="button" aria-label="Fechar">×</button>`;const removeToast=()=>{toast.style.opacity='0';toast.style.transform='translateY(-6px)';setTimeout(()=>toast.remove(),160);};toast.querySelector('.toast-close').onclick=removeToast;toast.style.transition='opacity .16s ease, transform .16s ease';stack.appendChild(toast);if(timeout>0)setTimeout(removeToast,timeout);}
 function crmStatusMeta(status){const map={new:{label:'Novo',cls:'pill-blue'},ready:{label:'Pronto',cls:'pill-green'},sent_1x:{label:'Enviado 1x',cls:'pill-blue'},recall:{label:'Recall',cls:'pill-yellow'},replied:{label:'Respondeu',cls:'pill-green'},blocked:{label:'Bloqueado',cls:'pill-yellow'},bounced:{label:'Bounce',cls:'pill-yellow'},send_error:{label:'Erro',cls:'pill-yellow'}};return map[status]||{label:status||'—',cls:'pill-yellow'};}
@@ -4354,7 +4359,7 @@ function openLeadDrawer(id){
 
     // 4. Notas Rápidas
     const notesHtml = (c.notes && c.notes.length)
-      ? c.notes.map(n=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 12px;margin-bottom:6px;font-size:12.5px;line-height:1.4;"><div style="color:var(--text);">${escapeHtml(n.note)}</div><div style="font-size:10.5px;color:var(--subtle);margin-top:3px;">${escapeHtml(n.author||'Sistema')} · ${escapeHtml((n.created_at||'').slice(0,16).replace('T',' '))}</div></div>`).join('')
+      ? c.notes.map(n=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 12px;margin-bottom:6px;font-size:12.5px;line-height:1.4;"><div style="color:var(--text);white-space:pre-line;word-break:break-all;">${formatNoteContent(n.note)}</div><div style="font-size:10.5px;color:var(--subtle);margin-top:3px;">${escapeHtml(n.author||'Sistema')} · ${escapeHtml((n.created_at||'').slice(0,16).replace('T',' '))}</div></div>`).join('')
       : '<div class="tiny" style="color:var(--subtle);padding:6px 0;">Nenhuma nota interna ainda.</div>';
 
     // Montagem do Corpo do Drawer
