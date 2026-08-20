@@ -1261,13 +1261,32 @@ def run_instagram_automation_bg(contact_id: int, insta_url: str, message: str):
                         inject_active_banner(page, "🤖 BIGBOSS OS: DIGITAÇÃO ATIVA... NÃO FECHE ESTA ABA")
                     time.sleep(random.uniform(0.04, 0.12))
                     
-                crm.add_note(contact_id, "🤖 Mensagem de direct digitada automaticamente via robô BigBoss OS.", author="system")
+                # Monitoramento ativo do envio
+                sent_detected = False
+                for _ in range(180): # Monitora por até 3 minutos
+                    inject_active_banner(page, "✅ DIGITAÇÃO CONCLUÍDA! REVISE E APERTE ENTER PARA ENVIAR.", "#22c55e")
+                    time.sleep(1)
+                    try:
+                        if page.is_closed():
+                            break
+                        # Avalia se a caixa de texto ficou vazia
+                        text_val = page.evaluate("el => el.innerText || el.textContent || ''", textbox).strip()
+                        if not text_val:
+                            # A caixa esvaziou -> Envio detectado!
+                            sent_detected = True
+                            break
+                    except Exception:
+                        break
                 
-                # Altera o banner para verde de sucesso!
-                inject_active_banner(page, "✅ DIGITAÇÃO CONCLUÍDA! REVISE E ENVIE NO ENTER.", "#22c55e")
-                
-                # Mantém a aba e a conexão abertas por 5 minutos para o usuário revisar e apertar Enter
-                time.sleep(300)
+                if sent_detected:
+                    crm.update_contact_status(contact_id, "sent_1x")
+                    crm.add_note(contact_id, "🤖 Envio detectado pelo robô. Status do lead atualizado automaticamente para 'Instagram Enviado'.", author="system")
+                    inject_active_banner(page, "✅ SUCESSO: ENVIO DETECTADO! STATUS ATUALIZADO NO CRM.", "#16a34a")
+                    time.sleep(5) # Mantém o banner verde de sucesso por 5 segundos e encerra
+                else:
+                    # Se deu timeout e ele não apertou enter, registra apenas que foi digitado
+                    crm.add_note(contact_id, "🤖 Mensagem de direct digitada automaticamente via robô BigBoss OS. (Aguardando envio manual).", author="system")
+                    time.sleep(60)
                 
     except Exception as exc:
         print(f"[automação] erro no direct do instagram: {exc}")

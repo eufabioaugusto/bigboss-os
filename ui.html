@@ -2741,7 +2741,30 @@ function formatNoteContent(text) {
 }
 async function parseResponsePayload(response){const raw=await response.text();try{return raw?JSON.parse(raw):{};}catch(_){return{error:raw||`HTTP ${response.status}`};}}
 function showToast({title,message='',tone='info',timeout=3200}){const stack=document.getElementById('toast-stack');if(!stack)return;const icons={success:'✓',error:'!',info:'i'};const toast=document.createElement('div');toast.className=`toast toast-${tone}`;toast.innerHTML=`<div class="toast-icon">${icons[tone]||icons.info}</div><div style="min-width:0;flex:1;"><div class="toast-title">${escapeHtml(title||'Aviso')}</div>${message?`<div class="toast-message">${escapeHtml(message)}</div>`:''}</div><button class="toast-close" type="button" aria-label="Fechar">×</button>`;const removeToast=()=>{toast.style.opacity='0';toast.style.transform='translateY(-6px)';setTimeout(()=>toast.remove(),160);};toast.querySelector('.toast-close').onclick=removeToast;toast.style.transition='opacity .16s ease, transform .16s ease';stack.appendChild(toast);if(timeout>0)setTimeout(removeToast,timeout);}
-function crmStatusMeta(status){const map={new:{label:'Novo',cls:'pill-blue'},ready:{label:'Pronto',cls:'pill-green'},sent_1x:{label:'Enviado 1x',cls:'pill-blue'},recall:{label:'Recall',cls:'pill-yellow'},replied:{label:'Respondeu',cls:'pill-green'},blocked:{label:'Bloqueado',cls:'pill-yellow'},bounced:{label:'Bounce',cls:'pill-yellow'},send_error:{label:'Erro',cls:'pill-yellow'}};return map[status]||{label:status||'—',cls:'pill-yellow'};}
+function crmStatusMeta(status, contact){
+  let sent_label = 'Enviado';
+  if (contact) {
+    if (contact.instagram) {
+      sent_label = 'Instagram Enviado';
+    } else if (contact.canal === 'whatsapp' || contact.telefone) {
+      sent_label = 'WhatsApp Enviado';
+    } else {
+      sent_label = 'E-mail Enviado';
+    }
+  }
+  const map={
+    new:{label:'Novo Lead',cls:'pill-blue'},
+    ready:{label:'Fila de Envio',cls:'pill-green'},
+    sent_1x:{label:sent_label,cls:'pill-blue'},
+    recall:{label:'Recall',cls:'pill-yellow'},
+    replied:{label:'Respondeu',cls:'pill-green'},
+    blocked:{label:'Descartado',cls:'pill-yellow'},
+    meeting:{label:'Reunião Agendada',cls:'pill-green'},
+    bounced:{label:'Bounce',cls:'pill-yellow'},
+    send_error:{label:'Erro',cls:'pill-yellow'}
+  };
+  return map[status]||{label:status||'—',cls:'pill-yellow'};
+}
 function sourceLabel(source){return ({google:'Google',instagram:'Instagram',tiktok:'TikTok',tiktok_shop:'TikTok Shop'}[source]||'Google');}
 function nextActionMeta(action){const map={send_email:{label:'Enviar email',cls:'pill-green'},send_instagram_dm:{label:'Copiar DM',cls:'pill-blue'},call_or_whatsapp:{label:'Contato manual',cls:'pill-yellow'},followup:{label:'Follow-up',cls:'pill-yellow'},find_contact:{label:'Buscar contato',cls:'pill-yellow'},blocked:{label:'Bloqueado',cls:'pill-yellow'}};return map[action]||{label:'Revisar',cls:'pill-yellow'};}
 let isSigRawMode = false;
@@ -4450,7 +4473,7 @@ function openLeadDrawer(id){
           <select class="crm-filter-select" style="padding:4px 8px;font-size:12px;" onchange="quickUpdateStage(${id}, this.value)">
             <option value="new" ${c.status==='new'?'selected':''}>🆕 Novo Lead</option>
             <option value="ready" ${c.status==='ready'?'selected':''}>📬 Fila de Envio</option>
-            <option value="sent_1x" ${c.status==='sent_1x'?'selected':''}>📤 Enviado</option>
+            <option value="sent_1x" ${c.status==='sent_1x'?'selected':''}>📤 ${c.instagram ? 'Instagram Enviado' : (c.canal === 'whatsapp' || c.telefone ? 'WhatsApp Enviado' : 'E-mail Enviado')}</option>
             <option value="replied" ${c.status==='replied'?'selected':''}>💬 Respondeu</option>
             <option value="meeting" ${c.status==='meeting'?'selected':''}>🤝 Reunião Agendada</option>
             <option value="blocked" ${c.status==='blocked'?'selected':''}>🚫 Descartado</option>
