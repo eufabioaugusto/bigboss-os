@@ -1191,7 +1191,21 @@ async def crm_outreach_instagram_auto(contact_id: int, bg: BackgroundTasks):
         
     if not chrome_open:
         try:
+            import os
             profile_dir = "/Users/fabio/.gemini/antigravity/brain/0509120b-a4d2-4a8a-a3cc-110ff72d6262/scratch/chrome_profile"
+            os.makedirs(profile_dir, exist_ok=True)
+            
+            # Remove a trava de Singleton do Chrome se ela tiver ficado presa por crash anterior
+            lock_file = os.path.join(profile_dir, "SingletonLock")
+            if os.path.islink(lock_file) or os.path.exists(lock_file):
+                try:
+                    os.unlink(lock_file)
+                except Exception:
+                    try:
+                        os.remove(lock_file)
+                    except Exception:
+                        pass
+            
             subprocess.Popen([
                 "open", "-n", "-a", "Google Chrome",
                 "--args",
