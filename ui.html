@@ -2830,13 +2830,24 @@ let campaignsList = [];
 
 function loadCampaigns(){
   fetch('/campaigns')
-    .then(r => r.json())
-    .then(data => {
-      campaignsList = data || [];
-      renderCampaignsList();
-      populateCampaignsDropdowns();
+    .then(r => {
+      if (!r.ok) throw new Error("Erro HTTP " + r.status);
+      return r.json();
     })
-    .catch(() => showToast({title: 'Erro', message: 'Não foi possível carregar as campanhas.', tone: 'error'}));
+    .then(data => {
+      if (Array.isArray(data)) {
+        campaignsList = data;
+        renderCampaignsList();
+        populateCampaignsDropdowns();
+      } else {
+        campaignsList = [];
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      campaignsList = [];
+      showToast({title: 'Erro', message: 'Não foi possível carregar as campanhas.', tone: 'error'});
+    });
 }
 
 function renderCampaignsList(){
