@@ -1231,8 +1231,8 @@ async def crm_outreach_instagram_auto(contact_id: int, bg: BackgroundTasks):
                 "--args",
                 "--remote-debugging-port=9222"
             ])
-            # Espera até 4 segundos para a porta responder
-            for _ in range(8):
+            # Espera até 15 segundos para a porta responder (importante para quem tem muitas abas abertas)
+            for _ in range(30):
                 time.sleep(0.5)
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.settimeout(0.5)
