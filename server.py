@@ -1130,6 +1130,8 @@ def run_instagram_automation_bg(contact_id: int, insta_url: str, message: str):
                     time.sleep(random.uniform(0.04, 0.12))
                     
                 crm.add_note(contact_id, "🤖 Mensagem de direct digitada automaticamente via robô BigBoss OS.", author="system")
+                # Mantém a aba e a conexão abertas por 5 minutos para o usuário revisar e apertar Enter
+                time.sleep(300)
                 
     except Exception as exc:
         print(f"[automação] erro no direct do instagram: {exc}")
@@ -1171,7 +1173,8 @@ async def crm_outreach_instagram_auto(contact_id: int, bg: BackgroundTasks):
         try:
             profile_dir = "/Users/fabio/.gemini/antigravity/brain/0509120b-a4d2-4a8a-a3cc-110ff72d6262/scratch/chrome_profile"
             subprocess.Popen([
-                "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+                "open", "-n", "-a", "Google Chrome",
+                "--args",
                 "--remote-debugging-port=9222",
                 f"--user-data-dir={profile_dir}"
             ])
