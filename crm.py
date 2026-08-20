@@ -1104,6 +1104,7 @@ def get_stats() -> dict:
         sent_once = conn.execute("SELECT COUNT(*) FROM crm_contacts WHERE send_count >= 1").fetchone()[0]
         recall = conn.execute("SELECT COUNT(*) FROM crm_contacts WHERE status = 'recall'").fetchone()[0]
         replied = conn.execute("SELECT COUNT(*) FROM crm_contacts WHERE status = 'replied'").fetchone()[0]
+        meeting = conn.execute("SELECT COUNT(*) FROM crm_contacts WHERE status = 'meeting'").fetchone()[0]
         blocked = conn.execute("SELECT COUNT(*) FROM crm_contacts WHERE status = 'blocked' OR do_not_contact = 1").fetchone()[0]
         replies_unread = conn.execute("SELECT COUNT(*) FROM crm_email_replies WHERE status = 'unread'").fetchone()[0]
         queue = conn.execute(
@@ -1145,6 +1146,7 @@ def get_stats() -> dict:
         "sent_once": sent_once,
         "recall": recall,
         "replied": replied,
+        "meeting": meeting,
         "blocked": blocked,
         "replies_unread": replies_unread,
         "queue": queue,
