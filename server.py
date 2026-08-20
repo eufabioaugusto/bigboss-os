@@ -456,7 +456,7 @@ def check_incoming_replies():
     import crm
     import re
     from agents.ai import ask_json
-    from datetime import datetime
+    from datetime import datetime, timedelta
     
     config = load_config()
     imap_cfg = config.get("imap", {})
@@ -484,7 +484,9 @@ def check_incoming_replies():
         mail.login(imap_user, imap_pass)
         mail.select("INBOX")
         
-        status, messages = mail.search(None, 'UNSEEN')
+        # Busca emails dos últimos 2 dias para capturar respostas mesmo se já lidas no Gmail
+        since_date = (datetime.now() - timedelta(days=2)).strftime("%d-%b-%Y")
+        status, messages = mail.search(None, 'SINCE', since_date)
         if status != "OK" or not messages[0]:
             mail.logout()
             return
@@ -1042,6 +1044,127 @@ async def webhook_booking(req: Request):
         "message": f"Lead '{matched_contact['nome_empresa']}' movido para Reunião.",
         "contact_id": contact_id
     }
+
+
+def run_instagram_automation_bg(contact_id: int, insta_url: str, message: str):
+    import time
+    import random
+    from playwright.sync_api import sync_playwright
+    import crm
+    
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.connect_over_cdp("http://localhost:9222")
+            context = browser.contexts[0]
+            page = context.new_page()
+            
+            page.goto(insta_url)
+            page.wait_for_load_state("networkidle")
+            time.sleep(3)
+            
+            msg_btn = None
+            selectors_to_try = [
+                "//div[text()='Enviar mensagem']",
+                "//div[text()='Message']",
+                "//button[contains(., 'Enviar mensagem')]",
+                "//button[contains(., 'Message')]",
+                "a[href*='/direct/t/']",
+                "role=button[name='Enviar mensagem']",
+                "role=button[name='Message']"
+            ]
+            for selector in selectors_to_try:
+                try:
+                    locator = page.locator(selector).first
+                    if locator.is_visible(timeout=2000):
+                        msg_btn = locator
+                        break
+                except Exception:
+                    continue
+                    
+            if msg_btn:
+                msg_btn.click()
+                page.wait_for_url("**/direct/t/**", timeout=15000)
+            else:
+                page.wait_for_url("**/direct/t/**", timeout=20000)
+                
+            time.sleep(4)
+            
+            textbox = None
+            textbox_selectors = [
+                "div[role='textbox']",
+                "div[contenteditable='true']",
+                "textarea[placeholder*='Mensagem']",
+                "textarea[placeholder*='Message']"
+            ]
+            for selector in textbox_selectors:
+                try:
+                    locator = page.locator(selector).first
+                    if locator.is_visible(timeout=3000):
+                        textbox = locator
+                        break
+                except Exception:
+                    continue
+                    
+            if textbox:
+                textbox.click()
+                time.sleep(1)
+                for char in message:
+                    textbox.type(char)
+                    time.sleep(random.uniform(0.04, 0.12))
+                    
+                crm.add_note(contact_id, "🤖 Mensagem de direct digitada automaticamente via robô BigBoss OS.", author="system")
+                
+    except Exception as exc:
+        print(f"[automação] erro no direct do instagram: {exc}")
+
+
+@app.post("/crm/contacts/{contact_id}/outreach-instagram-auto")
+async def crm_outreach_instagram_auto(contact_id: int, bg: BackgroundTasks):
+    import crm
+    import subprocess
+    import socket
+    import time
+    
+    crm.init_db()
+    contact = crm.get_contact_full(contact_id)
+    if not contact:
+        return JSONResponse({"error": "Lead não encontrado"}, status_code=404)
+        
+    insta_url = contact.get("instagram")
+    if not insta_url:
+        return JSONResponse({"error": "Lead não possui Instagram cadastrado"}, status_code=400)
+        
+    message = contact.get("dm_instagram")
+    if not message:
+        return JSONResponse({"error": "Roteiro de DM do Instagram não gerado para este lead"}, status_code=400)
+        
+    # Verifica se a porta de depuração 9222 do Chrome está ativa
+    chrome_open = False
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(1)
+    try:
+        s.connect(("127.0.0.1", 9222))
+        chrome_open = True
+    except Exception:
+        pass
+    finally:
+        s.close()
+        
+    if not chrome_open:
+        # Se não estiver aberta, tenta forçar a abertura do Chrome no Mac com a porta ativa
+        try:
+            subprocess.run(["killall", "Google Chrome"], capture_output=True)
+            time.sleep(1)
+            subprocess.Popen([
+                "open", "-a", "Google Chrome", "--args", "--remote-debugging-port=9222"
+            ])
+            # Tempo curto de carregamento do binário
+            time.sleep(3)
+        except Exception as exc:
+            return JSONResponse({"error": f"Não foi possível iniciar o Chrome: {str(exc)}"}, status_code=500)
+            
+    bg.add_task(run_instagram_automation_bg, contact_id, insta_url, message)
+    return {"ok": True, "message": "Automação de digitação iniciada no Chrome."}
 
 
 @app.get("/templates")

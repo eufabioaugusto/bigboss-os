@@ -3993,6 +3993,38 @@ function openTikTokWithAIScript(contactId, tiktokUrl, companyName){
   openSocialMediaWithAIScript(contactId, 'tiktok', tiktokUrl, companyName);
 }
 
+function triggerInstaDMAuto(contactId, btn) {
+  const originalHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i data-lucide="loader-circle" class="spin" style="width:13px;height:13px;margin-right:4px;display:inline-block;"></i>Digitando...';
+  initIcons();
+  
+  fetch(`/crm/contacts/${contactId}/outreach-instagram-auto`, { method: 'POST' })
+    .then(async r => {
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.error || 'Erro na automação');
+      return data;
+    })
+    .then(() => {
+      showToast({
+        title: 'Automação Iniciada', 
+        message: 'O robô está digitando a mensagem na aba do direct no seu Chrome!', 
+        tone: 'success'
+      });
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+        initIcons();
+      }, 5000);
+    })
+    .catch(err => {
+      showToast({ title: 'Erro de Conexão', message: err.message, tone: 'error' });
+      btn.disabled = false;
+      btn.innerHTML = originalHtml;
+      initIcons();
+    });
+}
+
 async function openSocialMediaWithAIScript(contactId, platform, contactValue, companyName) {
   if (!contactValue) {
     showToast({title: 'Sem contato', message: `Este lead não possui dados de ${platform} cadastrados.`, tone: 'info'});
@@ -4282,7 +4314,8 @@ function openLeadDrawer(id){
         contactIconBtn = `<button class="icon-btn" onclick="openTikTokWithAIScript(${id}, '${escapeHtml(c.instagram)}', '${escapeHtml(c.nome_empresa||'')}')" title="Abrir TikTok com IA" style="border:none;background:none;cursor:pointer;color:#000;padding:2px;"><i data-lucide="video" style="width:13px;height:13px;"></i></button>`;
       } else {
         contactActionLabel = 'Instagram';
-        contactActionBtn = `<button class="btn-outreach-instagram" onclick="openInstagramWithAIScript(${id}, '${escapeHtml(c.instagram)}', '${escapeHtml(c.nome_empresa||'')}')">📸 Insta DM c/ Script IA</button>`;
+        contactActionBtn = `<button class="btn-outreach-instagram" onclick="openInstagramWithAIScript(${id}, '${escapeHtml(c.instagram)}', '${escapeHtml(c.nome_empresa||'')}')">📸 Insta DM (Manual)</button>
+        <button class="btn" style="background:#5851db;color:#fff;font-size:12.5px;padding:6px 14px;font-weight:700;display:inline-flex;align-items:center;gap:4px;" onclick="triggerInstaDMAuto(${id}, this)"><i data-lucide="bot" style="width:13px;height:13px;"></i>🤖 Digitar no Instagram</button>`;
         contactIconBtn = `<button class="icon-btn" onclick="openInstagramWithAIScript(${id}, '${escapeHtml(c.instagram)}', '${escapeHtml(c.nome_empresa||'')}')" title="Abrir Instagram com IA" style="border:none;background:none;cursor:pointer;color:#e1306c;padding:2px;"><i data-lucide="instagram" style="width:13px;height:13px;"></i></button>`;
       }
     }
