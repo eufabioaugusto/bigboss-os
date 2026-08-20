@@ -1175,16 +1175,39 @@ def run_instagram_automation_bg(contact_id: int, insta_url: str, message: str):
             if msg_btn:
                 try:
                     msg_btn.click()
-                    page.wait_for_url("**/direct/t/**", timeout=10000)
                     clicked = True
                 except Exception:
-                    print("[automação] Falha ao clicar no botão de Mensagem. Aguardando clique manual...")
-                    
-            if not clicked:
-                # Se falhar o clique automático, espera o usuário clicar
-                page.wait_for_url("**/direct/t/**", timeout=30000)
+                    print("[automação] Falha ao clicar no botão de Mensagem. Aguardando clique ou abertura manual...")
+            
+            # Aguarda a caixa de texto de chat ficar visível (seja por redirecionamento de URL ou por drawer popup flutuante)
+            print("[automação] Aguardando a abertura do chat...")
+            textbox_visible = False
+            for _ in range(40): # Espera até 20 segundos
+                inject_active_banner(page, "🤖 BIGBOSS OS: AGUARDANDO ABERTURA DO CHAT...")
+                time.sleep(0.5)
+                try:
+                    if "direct/t" in page.url:
+                        textbox_visible = True
+                        break
+                    # Verifica se o textbox do drawer popup flutuante apareceu na tela
+                    for selector in ["div[role='textbox']", "div[contenteditable='true']", "textarea"]:
+                        if page.locator(selector).first.is_visible():
+                            textbox_visible = True
+                            break
+                    if textbox_visible:
+                        break
+                except Exception:
+                    pass
+            
+            if not textbox_visible:
+                # Se ainda assim não estiver visível, dá um tempo extra final pro usuário abrir
+                try:
+                    page.wait_for_url("**/direct/t/**", timeout=15000)
+                except Exception:
+                    print("[automação] Tempo de espera do chat esgotado.")
+                    return
                 
-            time.sleep(4)
+            time.sleep(2)
             inject_active_banner(page, "🤖 BIGBOSS OS: DIGITAÇÃO ATIVA... NÃO FECHE ESTA ABA")
             
             textbox = None
