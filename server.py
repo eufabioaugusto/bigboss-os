@@ -841,6 +841,7 @@ async def save_company(req: Request):
 
 @app.get("/campaigns")
 def list_campaigns():
+    crm.init_db()
     with crm.get_conn() as conn:
         rows = conn.execute("SELECT * FROM campaigns ORDER BY created_at DESC").fetchall()
         return [dict(r) for r in rows]
@@ -848,6 +849,7 @@ def list_campaigns():
 
 @app.post("/campaigns")
 async def save_campaign_payload(req: Request):
+    crm.init_db()
     body = await req.json()
     campaign_id = body.get("id")
     if not campaign_id:
@@ -916,6 +918,7 @@ async def save_campaign_payload(req: Request):
 
 @app.delete("/campaigns/{campaign_id}")
 def delete_campaign_endpoint(campaign_id: str):
+    crm.init_db()
     with crm.get_conn() as conn:
         conn.execute("DELETE FROM campaigns WHERE id = ?", (campaign_id,))
         conn.execute("UPDATE scheduled_tasks SET campaign_id = NULL WHERE campaign_id = ?", (campaign_id,))
