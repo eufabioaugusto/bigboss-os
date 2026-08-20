@@ -98,6 +98,7 @@ def get_runtime_config() -> dict:
         'search': settings.get('search', {}),
         'scoring': settings.get('scoring', {}),
         'company': settings.get('company', {}),
+        'imap': settings.get('imap', {}),
     }
 
 
